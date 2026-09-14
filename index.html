@@ -1,20 +1,515 @@
-<form class="scan" id="token-form">
-  <div class="search-wrap">
-    <input
-      id="token-input"
-      type="text"
-      placeholder="Token mint address"
-      spellcheck="false"
-      autocomplete="off"
-    />
-    <button
-      class="clear-input"
-      id="clear-token"
-      type="button"
-      aria-label="Clear token address"
-      title="Clear"
-    >×</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LIVED Guard</title>
+  <meta name="theme-color" content="#050505" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Sans+3:wght@400;600;700&family=Special+Elite&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --void:#050505; --surface:#121212; --fg:#f6f1e8; --muted:#9c9388; --line:#ffffff22;
+      --brand:#ff6a00; --brand-2:#ff8a33; --on-brand:#0a0a0a; --seal:#c4162a;
+      --ok:#4ade80; --ok-bg:#16301f; --warn:#f5b942; --warn-bg:#2a220c; --danger:#ff6b5c; --danger-bg:#321414;
+      --display:"Bebas Neue", Impact, sans-serif; --sans:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+      --stamp:"Special Elite", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--void);color:var(--fg);font-family:var(--sans);line-height:1.5}
+    button:not(:disabled){cursor:pointer}
+    button:disabled{opacity:.5;cursor:default}
+    img{max-width:100%}
+    .backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+      radial-gradient(ellipse at 50% 38%,rgb(255 106 0/.16),rgb(5 5 5/.94) 72%), var(--void)}
+    .wrap{position:relative;z-index:1;min-height:100dvh;display:none}
+    .wrap.on{display:block}
+    header.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:#050505cc}
+    .brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}
+    .brand img{width:36px;height:36px;border-radius:999px;object-fit:cover}
+    .word{font-family:var(--display);font-size:28px}
+    .word span{color:var(--brand)}
+    nav{display:flex;gap:4px}
+    nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;font-family:var(--display);font-size:18px;text-transform:uppercase;text-decoration:none;color:var(--muted)}
+    nav a.on,nav a:hover{background:var(--brand);color:var(--on-brand)}
+    main{width:min(980px,calc(100% - 32px));margin:0 auto;padding:32px 0 64px}
+    h1{font-family:var(--display);font-weight:400;line-height:.86;margin:8px 0 12px;font-size:clamp(3.2rem,12vw,6.5rem)}
+    h2{font-family:var(--display);font-weight:400;margin:0}
+    .stamp{font-family:var(--stamp);font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}
+    .stamp.brand{color:var(--brand)}
+    .muted{color:var(--muted)}
+    .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .grid2{display:grid;gap:16px}
+    @media(min-width:800px){.grid2{grid-template-columns:1fr 1fr}}
+    .door,.card{border:1px solid var(--line);background:#121212d9;border-radius:20px;padding:24px}
+    a.door{color:inherit;text-decoration:none;display:block}
+    a.door:hover{border-color:var(--brand)}
+    .icon{width:44px;height:44px;border-radius:999px;display:grid;place-items:center;background:var(--brand);color:var(--on-brand);font-weight:700}
+    .icon.red{background:var(--seal);color:var(--fg)}
+    .cta{color:var(--brand);font-family:var(--display);font-size:20px;text-transform:uppercase;margin-top:22px}
+    form.scan{display:flex;flex-direction:column;gap:8px;max-width:720px;margin-top:24px}
+    @media(min-width:640px){form.scan{flex-direction:row}}
+    .search-wrap{position:relative;flex:1;min-width:0}
+    input[type=text]{width:100%;min-height:48px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:0 48px 0 20px;font-size:16px;outline:none}
+    input[type=text]:focus{border-color:var(--brand)}
+    .clear-input{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:25px;line-height:1;display:none;align-items:center;justify-content:center}
+    .search-wrap.has-value .clear-input{display:flex}
+    .clear-input:hover{background:#ffffff12;color:var(--fg)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border:0;border-radius:999px;background:var(--brand);color:var(--on-brand);font-family:var(--display);font-size:18px;text-transform:uppercase}
+    .btn:hover{background:var(--brand-2)}
+    .btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+    .btn.seal{background:var(--seal);color:var(--fg)}
+    footer{text-align:center;color:var(--muted);font-size:14px;padding:24px 16px 40px;border-top:1px solid var(--line)}
+    .splash{min-height:100dvh;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;position:relative;z-index:2}
+    .splash.on{display:flex}
+    .seal-box{position:relative;width:min(72vw,380px);height:min(72vw,380px);margin:28px 0 8px}
+    .rays{position:absolute;inset:-22%;border-radius:999px;background:conic-gradient(from 0deg,transparent 0deg,rgb(255 106 0/.18) 12deg,transparent 24deg);animation:spin 28s linear infinite}
+    .seal-box img{position:relative;z-index:1;width:100%;height:100%;border-radius:999px;object-fit:cover;animation:breathe 4.6s ease-in-out infinite}
+    .splash h1{font-size:clamp(3.8rem,18vw,9rem);line-height:.8}
+    .splash h1 span{color:var(--brand);display:block}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+    @media(min-width:800px){.stats.four{grid-template-columns:repeat(4,1fr)}}
+    .stat{border:1px solid var(--line);background:#1c1c1cb3;border-radius:10px;padding:12px}
+    .stat b{display:block;font-family:var(--display);font-size:24px;font-weight:400}
+    .stat span{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+    .chip{display:inline-block;background:var(--seal);color:var(--fg);border-radius:999px;padding:4px 10px;font-family:var(--display);font-size:18px;margin:2px}
+    .badge{display:inline-flex;gap:8px;align-items:center;border-radius:10px;padding:8px 12px}
+    .badge.ok{background:var(--ok-bg);color:var(--ok)}
+    .badge.warn{background:var(--warn-bg);color:var(--warn)}
+    .badge.high{background:var(--danger-bg);color:var(--danger)}
+    .find{border-top:1px solid var(--line);padding:12px 0}
+    .find .lvl{font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+    .err{border:1px solid var(--danger);background:var(--danger-bg);color:var(--danger);border-radius:16px;padding:16px}
+    .busy{border:1px solid var(--line);border-radius:16px;padding:28px;text-align:center;font-family:var(--stamp);color:var(--muted)}
+    .watch li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:12px 0;border-top:1px solid var(--line)}
+    .card-grid{display:grid;gap:16px}
+    @media(min-width:900px){.card-grid{grid-template-columns:1.05fr .95fr}}
+    .card-preview{width:100%;border-radius:12px;border:1px solid var(--line)}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+  </style>
+</head>
+<body>
+  <div class="backdrop"></div>
+  <section id="splash" class="splash on">
+    <p class="stamp">No theory · Everybody belongs</p>
+    <div class="seal-box"><div class="rays"></div><img id="seal-live" alt="LIVED IT" /></div>
+    <h1>LIVED<span>GUARD</span></h1>
+    <p class="muted" style="max-width:440px">Free Solana token and wallet scanner. No connect. No paid tier. For everyone.</p>
+    <p style="margin-top:28px"><button class="btn" id="enter" type="button">Enter Guard</button></p>
+  </section>
+  <div id="app" class="wrap">
+    <header class="bar">
+      <a class="brand" href="#hub" data-go="hub"><img class="seal-img" alt="" /><span class="word">LIVED <span>GUARD</span></span></a>
+      <nav>
+        <a href="#hub" data-go="hub" id="nav-hub">Home</a>
+        <a href="#token" data-go="token" id="nav-token">Token scan</a>
+        <a href="#wallet" data-go="wallet" id="nav-wallet">Wallet watch</a>
+      </nav>
+    </header>
+    <section id="hub" class="view">
+      <main>
+        <div style="text-align:center;max-width:640px;margin:0 auto">
+          <p class="stamp brand">Free for everyone</p>
+          <h1>Two doors.<span style="display:block;color:var(--brand)">One ledger.</span></h1>
+          <p class="muted">Token scan and wallet watch are separate. No connect. No paid tier.</p>
+        </div>
+        <div class="grid2" style="margin-top:36px">
+          <a class="door" href="#token" data-go="token"><div class="icon">S</div><h2 style="font-size:48px;margin-top:20px">Token scan</h2><p class="muted">Mint, freeze, liquidity, rug flags.</p><p class="cta">Open scanner →</p></a>
+          <a class="door" href="#wallet" data-go="wallet"><div class="icon red">W</div><h2 style="font-size:48px;margin-top:20px">Wallet watch</h2><p class="muted">DNA, chapters, shareable LIVED Card.</p><p class="cta">Open watch →</p></a>
+        </div>
+        <div id="hub-watch"></div>
+      </main>
+    </section>
+    <section id="token" class="view" hidden>
+      <main>
+        <p class="stamp brand">Token scan</p>
+        <h1>Read the mint.</h1>
+        <form class="scan" id="token-form">
+          <div class="search-wrap">
+            <input id="token-input" type="text" placeholder="Token mint address" spellcheck="false" autocomplete="off" />
+            <button class="clear-input" id="clear-token" type="button" aria-label="Clear token address" title="Clear">×</button>
+          </div>
+          <button class="btn" type="submit">Scan token</button>
+        </form>
+        <p><button class="btn ghost" type="button" id="scan-lived">Scan $LIVED</button></p>
+        <div id="token-out" style="margin-top:28px"></div>
+        <div id="token-watch"></div>
+      </main>
+    </section>
+    <section id="wallet" class="view" hidden>
+      <main>
+        <p class="stamp brand">Wallet watch</p>
+        <h1>Print the card.</h1>
+        <form class="scan" id="wallet-form">
+          <div class="search-wrap">
+            <input id="wallet-input" type="text" placeholder="Wallet address" spellcheck="false" autocomplete="off" />
+            <button class="clear-input" id="clear-wallet" type="button" aria-label="Clear wallet address" title="Clear">×</button>
+          </div>
+          <button class="btn" type="submit">Watch wallet</button>
+        </form>
+        <div id="wallet-out" style="margin-top:28px"></div>
+        <div id="wallet-watch"></div>
+      </main>
+    </section>
+    <footer>
+      <p>Free for everyone. No wallet connect. No paid tier. Not financial advice.</p>
+    </footer>
   </div>
+  <script>
+    const SEAL = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><circle cx="200" cy="200" r="198" fill="#111"/><circle cx="200" cy="200" r="188" fill="#efe4cd"/><text x="200" y="58" text-anchor="middle" font-family="Impact" font-size="22">NO THEORY</text><ellipse cx="200" cy="128" rx="70" ry="48" fill="#1c1814"/><text x="200" y="268" text-anchor="middle" font-family="Impact" font-size="54">LIVED IT.</text><rect x="70" y="286" width="260" height="36" fill="#c4162a"/><text x="200" y="312" text-anchor="middle" fill="#fff" font-family="Impact" font-size="22">COMMUNITY</text></svg>');
+    const LIVED_MINT = "2EezXNFBntMF1m7Mp4SJ9jc7vUDN9KaAGjwGhe2Xjupx";
+    const TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+    const TOKEN_2022 = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
+    const RPCS = ["https://api.mainnet-beta.solana.com","https://solana-rpc.publicnode.com"];
+    const PROGRAMS = {
+      JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4:{name:"Jupiter",kind:"defi"},
+      whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc:{name:"Orca",kind:"defi"},
+      "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8":{name:"Raydium AMM",kind:"defi"},
+      "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P":{name:"pump.fun",kind:"memecoin"},
+      metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s:{name:"Metaplex",kind:"nft"},
+      BPFLoaderUpgradeab1e11111111111111111111111:{name:"BPF Loader",kind:"build"},
+      T1pyyaTNZsGrQ9PZeC7ssKxKzqprGxHbKcuW2SUz4dx:{name:"Squads",kind:"build"}
+    };
+    const ALPHA = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    const OG_CUTOFF = Date.UTC(2022,0,1)/1000;
+    document.querySelectorAll(".seal-img,#seal-live").forEach((el)=>{el.src=SEAL});
 
-  <button class="btn" type="submit">Scan token</button>
-</form>
+    function decode58(str){const bytes=[0];for(const ch of str){const val=ALPHA.indexOf(ch);if(val<0)throw new Error("bad");let carry=val;for(let i=0;i<bytes.length;i++){carry+=bytes[i]*58;bytes[i]=carry&255;carry>>=8}while(carry){bytes.push(carry&255);carry>>=8}}let z=0;for(const ch of str){if(ch==="1")z++;else break}return new Uint8Array([...Array(z).fill(0),...bytes.reverse()])}
+    function encode58(buf){const bytes=Array.from(buf);let z=0;while(z<bytes.length&&bytes[z]===0)z++;const digits=[0];for(let i=z;i<bytes.length;i++){let carry=bytes[i];for(let j=0;j<digits.length;j++){carry+=digits[j]<<8;digits[j]=carry%58;carry=(carry/58)|0}while(carry){digits.push(carry%58);carry=(carry/58)|0}}return "1".repeat(z)+digits.reverse().map(d=>ALPHA[d]).join("")}
+    function isPubkey(raw){try{return decode58(raw.trim()).length===32}catch{return false}}
+    function shortAddr(a){return a.length<10?a:a.slice(0,4)+"…" +a.slice(-4)}
+    function formatUsd(n){if(n==null||!Number.isFinite(n))return "—";if(n>=1e6)return "$"+(n/1e6).toFixed(2)+"M";if(n>=1e3)return "$"+(n/1e3).toFixed(1)+"k";if(n>=1)return "$"+n.toFixed(2);return "$"+n.toPrecision(3)}
+    function formatWhen(u){return new Date(u*1000).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}
+    function formatAge(d){if(d==null)return "—";if(d<31)return d+"d";const y=d/365.25;return y>=1?y.toFixed(1)+" yrs":Math.round(d/30.4)+" mo"}
+    function formatSupply(raw,decimals){const n=Number(raw)/10**decimals;if(!Number.isFinite(n))return raw;if(n>=1e9)return (n/1e9).toFixed(2)+"B";if(n>=1e6)return (n/1e6).toFixed(2)+"M";if(n>=1e3)return (n/1e3).toFixed(1)+"k";return n.toLocaleString(undefined,{maximumFractionDigits:4})}
+    function esc(s){const map={"&":"&"+"amp;","<":"&"+"lt;",">":"&"+"gt;",'"':"&"+"quot;","'":"&#39;"};return String(s??"").replace(/[&<>"']/g,c=>map[c])}
+
+    let rpcIndex=0;
+    async function rpc(method,params,ms=12000){
+      const body=JSON.stringify({jsonrpc:"2.0",id:1,method,params});
+      let last=new Error("RPC failed");
+      for(let i=0;i<RPCS.length;i++){
+        const url=RPCS[(rpcIndex+i)%RPCS.length];
+        const ctrl=new AbortController();
+        const t=setTimeout(()=>ctrl.abort(),ms);
+        try{
+          const res=await fetch(url,{method:"POST",headers:{"content-type":"application/json"},body,signal:ctrl.signal});
+          const json=await res.json();
+          if(json.error) throw new Error(json.error.message||"RPC error");
+          rpcIndex=(rpcIndex+i)%RPCS.length;
+          return json.result;
+        }catch(err){last=err}finally{clearTimeout(t)}
+      }
+      throw last;
+    }
+    async function getJson(url,ms=8000){
+      const ctrl=new AbortController();
+      const t=setTimeout(()=>ctrl.abort(),ms);
+      try{const res=await fetch(url,{headers:{accept:"application/json"},signal:ctrl.signal});if(!res.ok)return null;return await res.json()}catch{return null}finally{clearTimeout(t)}
+    }
+    function decodeMint(bytes){
+      if(bytes.length<82)return null;
+      const u32=o=>bytes[o]|(bytes[o+1]<<8)|(bytes[o+2]<<16)|(bytes[o+3]<<24);
+      const view=new DataView(bytes.buffer,bytes.byteOffset+36,8);
+      return{
+        mintAuthority:u32(0)===0?null:encode58(bytes.slice(4,36)),
+        freezeAuthority:u32(46)===0?null:encode58(bytes.slice(50,82)),
+        supply:view.getBigUint64(0,true).toString(),
+        decimals:bytes[44]||0
+      };
+    }
+    function rollVerdict(f){if(f.some(x=>x.level==="high"))return "high";if(f.some(x=>x.level==="caution"))return "caution";return "clear"}
+    function verdictCopy(v){if(v==="high")return{label:"High risk",blurb:"Do not buy until you understand these flags.",cls:"high"};if(v==="caution")return{label:"Caution",blurb:"Some flags. Read them before you size in.",cls:"warn"};return{label:"Clear",blurb:"Mint and freeze look revoked. Still DYOR.",cls:"ok"}}
+    function normalizeAddress(value){return typeof value==="string"?value.trim():""}
+
+    // Identify known liquidity-market addresses so an LP is not presented as a human holder.
+    function collectMarketAddresses(markets){
+      const addresses=new Set();
+      for(const market of markets||[]){
+        const candidates=[
+          market?.lp?.address,market?.lp?.pubkey,market?.lp?.id,market?.lp?.authority,
+          market?.address,market?.pubkey,market?.id,market?.market,market?.marketAddress,
+          market?.pool,market?.poolAddress,market?.amm,market?.ammId,market?.ammAddress
+        ];
+        for(const value of candidates){
+          const address=normalizeAddress(value);
+          if(isPubkey(address)) addresses.add(address);
+        }
+      }
+      return addresses;
+    }
+
+    function marketNameFor(markets,address){
+      for(const market of markets||[]){
+        const candidates=[
+          market?.lp?.address,market?.lp?.pubkey,market?.lp?.id,market?.lp?.authority,
+          market?.address,market?.pubkey,market?.id,market?.market,market?.marketAddress,
+          market?.pool,market?.poolAddress,market?.amm,market?.ammId,market?.ammAddress
+        ].map(normalizeAddress);
+        if(candidates.includes(address)){
+          return market?.lp?.name||market?.name||market?.marketName||market?.dex||market?.source||"Liquidity pool";
+        }
+      }
+      return "Liquidity pool";
+    }
+
+    async function resolveTopHolder(rug,holderAddress){
+      const address=normalizeAddress(holderAddress);
+      if(!isPubkey(address)) return {address:null,isLp:false,label:null};
+
+      const marketAddresses=collectMarketAddresses(rug?.markets);
+
+      if(marketAddresses.has(address)){
+        return {address,isLp:true,label:marketNameFor(rug?.markets,address)};
+      }
+
+      // RugCheck may return the token-account address rather than its owner.
+      try{
+        const account=await rpc("getParsedAccountInfo",[address,{commitment:"confirmed"}]);
+        const info=account?.value?.data?.parsed?.info;
+        if(info?.owner){
+          const owner=normalizeAddress(info.owner);
+          if(marketAddresses.has(owner)){
+            return {address,isLp:true,label:marketNameFor(rug?.markets,owner)};
+          }
+        }
+      }catch{}
+
+      return {address,isLp:false,label:null};
+    }
+
+
+    async function scanToken(mint){
+      const info=await rpc("getAccountInfo",[mint,{encoding:"base64",commitment:"confirmed"}]);
+      if(!info?.value) throw new Error("That address is not a token mint. Try Wallet watch instead.");
+      const owner=info.value.owner;
+      if(owner!==TOKEN_PROGRAM&&owner!==TOKEN_2022) throw new Error("That address is not a token mint. Try Wallet watch instead.");
+      const raw=Uint8Array.from(atob(info.value.data[0]),c=>c.charCodeAt(0));
+      const decoded=decodeMint(raw);
+      const [dexJson,rug]=await Promise.all([
+        getJson("https://api.dexscreener.com/latest/dex/tokens/"+mint),
+        getJson("https://api.rugcheck.xyz/v1/tokens/"+mint+"/report")
+      ]);
+      const pairs=(dexJson?.pairs||[]).filter(p=>p.chainId==="solana").sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0));
+      const dex=pairs[0]||null;
+      const mintAuthority=decoded?.mintAuthority||null;
+      const freezeAuthority=decoded?.freezeAuthority||null;
+      const decimals=decoded?.decimals??null;
+      const supplyUi=decoded&&decimals!=null?formatSupply(decoded.supply,decimals):null;
+      const name=rug?.tokenMeta?.name||dex?.baseToken?.name||null;
+      const symbol=rug?.tokenMeta?.symbol||dex?.baseToken?.symbol||null;
+      const imageUrl=rug?.fileMeta?.image||dex?.info?.imageUrl||null;
+      const priceUsd=dex?.priceUsd?Number(dex.priceUsd):null;
+      const liquidityUsd=dex?.liquidity?.usd??null;
+      const volume24h=dex?.volume?.h24??null;
+      const pairAgeHours=dex?.pairCreatedAt?Math.max(0,(Date.now()-dex.pairCreatedAt)/36e5):null;
+      const topRaw=rug?.topHolders?.[0]||null;
+      const rawTop=topRaw?.pct;
+      const topPct=rawTop==null||!Number.isFinite(Number(rawTop))?null:Number(rawTop)<=1?Number(rawTop)*100:Number(rawTop);
+      const topAddress=normalizeAddress(topRaw?.address||topRaw?.owner||topRaw?.wallet||topRaw?.account||topRaw?.tokenAccount||topRaw?.pubkey);
+      const topHolder=await resolveTopHolder(rug,topAddress);
+      let lpLocked=null;
+      if(rug?.markets?.length){
+        const anyLocked=rug.markets.some(m=>m.lp?.lpLocked||(m.lp?.lpLockedPct||0)>=95);
+        const anyInfo=rug.markets.some(m=>m.lp&&(m.lp.lpLocked!=null||m.lp.lpLockedPct!=null));
+        lpLocked=anyInfo?anyLocked:null;
+      }
+      const findings=[];
+      if(mintAuthority) findings.push({level:"high",title:"Mint authority is live",detail:"Someone can still mint more ("+shortAddr(mintAuthority)+")."});
+      else findings.push({level:"ok",title:"Mint authority revoked",detail:"Supply cannot be inflated from the mint account."});
+      if(freezeAuthority) findings.push({level:"caution",title:"Freeze authority is live",detail:"Accounts can still be frozen ("+shortAddr(freezeAuthority)+")."});
+      else findings.push({level:"ok",title:"Freeze authority revoked",detail:"Holders cannot be frozen from the mint account."});
+      if(liquidityUsd==null) findings.push({level:"high",title:"No Solana pool found",detail:"Liquidity is unknown."});
+      else if(liquidityUsd<1000) findings.push({level:"high",title:"Liquidity is tiny",detail:"About $"+Math.round(liquidityUsd).toLocaleString()+" in the largest pool."});
+      else if(liquidityUsd<15000) findings.push({level:"caution",title:"Thin liquidity",detail:"About $"+Math.round(liquidityUsd).toLocaleString()+" in the largest pool."});
+      else findings.push({level:"ok",title:"Pool has size",detail:"Largest pool is about $"+Math.round(liquidityUsd).toLocaleString()+"."});
+      if(pairAgeHours!=null&&pairAgeHours<6) findings.push({level:"caution",title:"Fresh pair",detail:"The pool is "+pairAgeHours.toFixed(1)+" hours old."});
+      if(topPct!=null&&topHolder.isLp) findings.push({level:"ok",title:"Largest holder is the liquidity pool",detail:(topHolder.label||"Liquidity pool / AMM")+" holds about "+topPct.toFixed(1)+"% of supply. It is not counted as a single-wallet holder."});
+      else if(topPct!=null&&topPct>=40) findings.push({level:"high",title:"Supply is concentrated",detail:"Largest holder is about "+topPct.toFixed(1)+"%."});
+      else if(topPct!=null&&topPct>=20) findings.push({level:"caution",title:"Top holder is large",detail:"Largest holder is about "+topPct.toFixed(1)+"%."});
+      if(lpLocked===false) findings.push({level:"caution",title:"LP lock not shown",detail:"Treat the pool as pullable."});
+      else if(lpLocked===true) findings.push({level:"ok",title:"LP looks locked",detail:"A reported market shows liquidity locked or burned."});
+      for(const risk of rug?.risks||[]){
+        const level=String(risk.level||"").toLowerCase();
+        if(level==="danger"||level==="warn"||level==="warning") findings.push({level:level==="danger"?"high":"caution",title:risk.name||"On-chain flag",detail:risk.description||"Flagged by RugCheck."});
+      }
+      return {address:mint,short:shortAddr(mint),name,symbol,imageUrl,mintAuthority,freezeAuthority,supplyUi,decimals,priceUsd:priceUsd!=null&&Number.isFinite(priceUsd)?priceUsd:null,liquidityUsd,volume24h,pairAgeHours,topHolderPct:topPct,topHolderAddress:topAddress,topHolderIsLp:topHolder.isLp,topHolderLabel:topHolder.label,lpLocked,findings,verdict:rollVerdict(findings)};
+    }
+
+    async function scanWallet(address){
+      const [bal,legacy,t22,sigs1]=await Promise.all([
+        rpc("getBalance",[address,{commitment:"confirmed"}]).catch(()=>({value:0})),
+        rpc("getParsedTokenAccountsByOwner",[address,{programId:TOKEN_PROGRAM},{encoding:"jsonParsed"}]).catch(()=>({value:[]})),
+        rpc("getParsedTokenAccountsByOwner",[address,{programId:TOKEN_2022},{encoding:"jsonParsed"}]).catch(()=>({value:[]})),
+        rpc("getSignaturesForAddress",[address,{limit:1000}]).catch(()=>[])
+      ]);
+      let sigs=Array.isArray(sigs1)?sigs1:[];
+      const capped=sigs.length>=1000;
+      const tokens=[...(legacy?.value||[]),...(t22?.value||[])].map(acc=>{
+        const info=acc.account?.data?.parsed?.info;
+        if(!info?.mint||!info.tokenAmount||info.tokenAmount.amount==="0")return null;
+        return {mint:info.mint,decimals:info.tokenAmount.decimals||0};
+      }).filter(Boolean);
+      const firstTxAt=sigs.length?(sigs.at(-1)?.blockTime||null):null;
+      const lastTxAt=sigs.length?(sigs[0]?.blockTime||null):null;
+      const ageDays=firstTxAt!=null?Math.max(0,Math.floor((Date.now()/1000-firstTxAt)/86400)):null;
+      const nftLike=tokens.filter(t=>t.decimals===0).length;
+      const distinctMints=new Set(tokens.map(t=>t.mint)).size;
+      const sample=sigs.length<=8?sigs.map(s=>s.signature):[...new Set([...sigs.slice(0,4),...sigs.slice(-4)].map(s=>s.signature))];
+      let parsed=[];
+      try{if(sample.length) parsed=await rpc("getParsedTransactions",[sample,{maxSupportedTransactionVersion:0,commitment:"confirmed"}],10000)||[]}catch{parsed=[]}
+      const ids=new Set();
+      for(const tx of parsed){
+        if(!tx)continue;
+        for(const ix of tx.transaction?.message?.instructions||[]) if(ix.programId) ids.add(String(ix.programId));
+        for(const group of tx.meta?.innerInstructions||[]) for(const ix of group.instructions||[]) if(ix.programId) ids.add(String(ix.programId));
+      }
+      const programsTouched=[]; const seen=new Set();
+      for(const id of ids){const hit=PROGRAMS[id];if(!hit||seen.has(hit.name))continue;seen.add(hit.name);programsTouched.push(hit)}
+      const defiHits=programsTouched.filter(p=>p.kind==="defi").length;
+      const buildHits=programsTouched.filter(p=>p.kind==="build").length;
+      const tags=[];
+      if(firstTxAt&&firstTxAt<OG_CUTOFF) tags.push("OG");
+      if((ageDays||0)>=180&&sigs.length>=8) tags.push("Long-Term Holder");
+      if(nftLike>=3) tags.push("Collector");
+      if(defiHits>=2) tags.push("DeFi Explorer");
+      if(buildHits>=1) tags.push("Builder");
+      if((ageDays||0)<90) tags.push("New Chapter");
+      if(!tags.length&&sigs.length>=20) tags.push("Active");
+      if(!tags.length) tags.push("New Chapter");
+      const order=["OG","Builder","Long-Term Holder","Collector","DeFi Explorer","Active","New Chapter"];
+      const dna=order.filter(t=>tags.includes(t)).slice(0,2);
+      const solBalance=(bal?.value||0)/1e9;
+      const chapters=[];
+      if(firstTxAt) chapters.push({title:"First on-chain breath",detail:formatWhen(firstTxAt)});
+      if(solBalance>0) chapters.push({title:"Still holding SOL",detail:solBalance.toFixed(solBalance>=10?2:4)+" SOL"});
+      if(nftLike>=1) chapters.push({title:"Collected pieces",detail:nftLike+" NFT-like still held"});
+      if(distinctMints>=1) chapters.push({title:"Tokens that stayed",detail:distinctMints+" mints with a balance"});
+      if(lastTxAt&&firstTxAt&&lastTxAt!==firstTxAt) chapters.push({title:"Still moving",detail:"Last activity "+formatWhen(lastTxAt)});
+      return {address,short:shortAddr(address),firstTxAt,lastTxAt,ageDays,signatureCount:sigs.length,signatureCapped:capped,solBalance,nftLike,distinctMints,programsTouched,dna,chapters:chapters.slice(0,8)};
+    }
+
+    function loadWatch(){try{return JSON.parse(localStorage.getItem("lived-guard-watch")||"[]")}catch{return []}}
+    function saveWatch(items){localStorage.setItem("lived-guard-watch",JSON.stringify(items.slice(0,24)))}
+    function upsertWatch(item){saveWatch([item,...loadWatch().filter(w=>w.address!==item.address)]);renderWatch()}
+    function dropWatch(address){saveWatch(loadWatch().filter(w=>w.address!==address));renderWatch()}
+    function renderWatch(){
+      const items=loadWatch();
+      function block(filter,mount){
+        const rows=filter?items.filter(i=>i.kind===filter):items;
+        if(!rows.length){mount.innerHTML="";return}
+        mount.innerHTML='<section class="card" style="margin-top:32px"><h2 style="font-size:28px">Watchlist</h2><ul class="watch" style="list-style:none;padding:0;margin:8px 0 0">'+rows.map(item=>'<li><div><b>'+esc(item.label)+'</b> <span class="muted">'+esc(item.kind)+'</span></div><div class="row"><button class="btn ghost" data-rescan="'+esc(item.kind)+':'+esc(item.address)+'">Rescan</button><button class="btn ghost" data-drop="'+esc(item.address)+'">Drop</button></div></li>').join("")+"</ul></section>";
+      }
+      block(null,document.getElementById("hub-watch"));
+      block("token",document.getElementById("token-watch"));
+      block("wallet",document.getElementById("wallet-watch"));
+    }
+    function show(name){
+      document.getElementById("splash").classList.remove("on");
+      document.getElementById("app").classList.add("on");
+      ["hub","token","wallet"].forEach(id=>{
+        document.getElementById(id).hidden=id!==name;
+        document.getElementById("nav-"+id).classList.toggle("on",id===name);
+      });
+      location.hash=name;
+    }
+    document.getElementById("enter").onclick=()=>{sessionStorage.setItem("lived-guard-entered","1");show("hub")};
+    document.querySelectorAll("[data-go]").forEach(el=>el.addEventListener("click",e=>{e.preventDefault();show(el.getAttribute("data-go"))}));
+    document.body.addEventListener("click",e=>{
+      const drop=e.target.closest("[data-drop]"); if(drop) dropWatch(drop.getAttribute("data-drop"));
+      const rescan=e.target.closest("[data-rescan]");
+      if(rescan){const [kind,address]=rescan.getAttribute("data-rescan").split(":");if(kind==="token"){document.getElementById("token-input").value=address;show("token");runToken(address)}else{document.getElementById("wallet-input").value=address;show("wallet");runWallet(address)}}
+    });
+    function stat(label,value){return '<div class="stat"><b>'+esc(value)+'</b><span>'+esc(label)+'</span></div>'}
+
+    async function runToken(address){
+      const out=document.getElementById("token-out");
+      const raw=(address||"").trim();
+      if(!isPubkey(raw)){out.innerHTML='<div class="err">Paste a Solana token mint.</div>';return}
+      out.innerHTML='<div class="busy">Opening the ledger…</div>';
+      try{
+        const r=await scanToken(raw);
+        const copy=verdictCopy(r.verdict);
+        out.innerHTML='<section class="card"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px"><div style="display:flex;gap:12px;align-items:center">'+(r.imageUrl?'<img src="'+esc(r.imageUrl)+'" alt="" style="width:48px;height:48px;border-radius:8px">':'<div class="icon">'+esc((r.symbol||"TK").slice(0,2))+'</div>')+'<div><h2 style="font-size:32px">'+esc(r.name||"Unknown token")+(r.symbol?" · "+esc(r.symbol):"")+'</h2><div class="stamp">'+esc(r.short)+'</div></div></div><div class="badge '+copy.cls+'"><div><b>'+esc(copy.label)+'</b><div style="font-size:12px">'+esc(copy.blurb)+'</div></div></div></div><div class="stats four">'+stat("Mint authority",r.mintAuthority?"Live":"Revoked")+stat("Freeze authority",r.freezeAuthority?"Live":"Revoked")+stat("Liquidity",formatUsd(r.liquidityUsd))+stat("24h volume",formatUsd(r.volume24h))+stat("Price",formatUsd(r.priceUsd))+stat("Supply",r.supplyUi||"—")+stat(r.topHolderIsLp?"Top holder (LP)":"Top holder",r.topHolderPct!=null?r.topHolderPct.toFixed(1)+"%":"—")+stat("LP lock",r.lpLocked==null?"Unknown":r.lpLocked?"Locked":"Unlocked")+'</div><h2 style="font-size:22px;margin-top:22px">Findings</h2>'+r.findings.map(f=>'<div class="find"><div class="lvl">'+ (f.level==="ok"?"Clear":f.level==="high"?"High":"Caution")+'</div><b>'+esc(f.title)+'</b><div class="muted">'+esc(f.detail)+'</div></div>').join("")+'<div class="row"><button class="btn seal" id="watch-token">Watch token</button><button class="btn ghost" id="copy-mint">Copy mint</button></div></section>';
+        document.getElementById("copy-mint").onclick=()=>navigator.clipboard.writeText(r.address);
+        document.getElementById("watch-token").onclick=()=>{upsertWatch({address:r.address,kind:"token",label:r.symbol||r.short,verdict:r.verdict});document.getElementById("watch-token").textContent="Watching"};
+      }catch(err){out.innerHTML='<div class="err">'+esc(err.message||"Scan failed.")+'</div>'}
+    }
+
+    function roundRect(ctx,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath()}
+    async function renderLivedCard(p){
+      const w=1080,h=1350,canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;const ctx=canvas.getContext("2d");
+      ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);
+
+      try{
+        const logo=await new Promise((resolve,reject)=>{
+          const img=new Image();
+          img.onload=()=>resolve(img);
+          img.onerror=reject;
+          img.src=SEAL;
+        });
+        ctx.save();
+        ctx.globalAlpha=0.12;
+        ctx.drawImage(logo,90,120,w-180,w-180);
+        ctx.restore();
+      }catch{}
+
+      ctx.strokeStyle="#ff6a00";ctx.lineWidth=10;roundRect(ctx,48,48,w-96,h-96,36);ctx.stroke();
+      ctx.fillStyle="#ff6a00";ctx.textAlign="center";ctx.font="700 118px Bebas Neue, Impact, sans-serif";ctx.fillText("LIVED CARD",w/2,520);
+      ctx.fillStyle="#f6f1e8";ctx.font="22px Special Elite, Georgia, serif";ctx.fillText(p.short.toUpperCase(),w/2,570);
+      ctx.fillStyle="#c4162a";roundRect(ctx,180,620,w-360,64,32);ctx.fill();
+      ctx.fillStyle="#fff";ctx.font="700 28px Bebas Neue, Impact, sans-serif";ctx.fillText((p.dna.join("  ·  ")||"NEW CHAPTER").toUpperCase(),w/2,662);
+      const rows=[["AGE",formatAge(p.ageDays)],["CHAPTERS",String(p.chapters.length)],["TX",String(p.signatureCount)+(p.signatureCapped?"+":"")]];
+      let y=780;for(const [k,v] of rows){ctx.textAlign="left";ctx.fillStyle="#f6f1e8";ctx.font="22px Special Elite, Georgia, serif";ctx.fillText(k,220,y);ctx.textAlign="right";ctx.fillStyle="#ff6a00";ctx.font="700 28px Bebas Neue, Impact, sans-serif";ctx.fillText(v,w-220,y);y+=72}
+      ctx.textAlign="center";ctx.fillStyle="#9c9388";ctx.font="20px Special Elite, Georgia, serif";ctx.fillText("YOUR WALLET HAS A HISTORY.",w/2,1180);
+      return canvas.toDataURL("image/png");
+    }
+
+    async function runWallet(address){
+      const out=document.getElementById("wallet-out");
+      const raw=(address||"").trim();
+      if(!isPubkey(raw)){out.innerHTML='<div class="err">Paste a Solana wallet address.</div>';return}
+      out.innerHTML='<div class="busy">Opening the ledger…</div>';
+      try{
+        const r=await scanWallet(raw);
+        const src=await renderLivedCard(r);
+        const share=["LIVED CARD — "+r.short,"DNA: "+(r.dna.join(" / ")||"New Chapter"),"Age: "+formatAge(r.ageDays),"Tx: "+r.signatureCount,"","Your wallet has a history. What will your legacy be?"].join("\n");
+        out.innerHTML='<div class="card-grid"><section class="card"><p class="stamp brand">Wallet watch</p><h2 style="font-size:40px">Lived Card</h2><p class="stamp">'+esc(r.short)+'</p><div>'+r.dna.map(t=>'<span class="chip">'+esc(t)+'</span>').join("")+'</div><div class="stats">'+stat("Wallet age",formatAge(r.ageDays))+stat("Signatures",String(r.signatureCount))+stat("Chapters",String(r.chapters.length))+stat("SOL",r.solBalance.toFixed(3))+'</div><h2 style="font-size:22px;margin-top:20px">Chapters</h2>'+r.chapters.map(c=>'<div class="find"><b>'+esc(c.title)+'</b><div class="muted">'+esc(c.detail)+'</div></div>').join("")+'<div class="row"><a class="btn" download="lived-card.png" href="'+src+'">Download card</a><button class="btn ghost" id="share-x">Share on X</button><button class="btn seal" id="watch-wallet">Watch wallet</button></div></section><aside class="card"><h2 style="font-size:22px">The seal</h2><img class="card-preview" alt="Lived Card" src="'+src+'"></aside></div>';
+        document.getElementById("share-x").onclick=()=>window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(share),"_blank","noopener");
+        document.getElementById("watch-wallet").onclick=()=>{upsertWatch({address:r.address,kind:"wallet",label:r.short,dna:r.dna.join(" / ")});document.getElementById("watch-wallet").textContent="Watching"};
+      }catch(err){out.innerHTML='<div class="err">'+esc(err.message||"Scan failed.")+'</div>'}
+    }
+
+    function setupClear(inputId,buttonId,outputId){
+      const input=document.getElementById(inputId);
+      const button=document.getElementById(buttonId);
+      const wrap=input.closest(".search-wrap");
+      const sync=()=>wrap.classList.toggle("has-value",!!input.value);
+      input.addEventListener("input",sync);
+      button.onclick=()=>{
+        input.value="";
+        sync();
+        input.focus();
+        if(outputId)document.getElementById(outputId).innerHTML="";
+      };
+      sync();
+    }
+
+    document.getElementById("token-form").onsubmit=e=>{e.preventDefault();runToken(document.getElementById("token-input").value)};
+    document.getElementById("wallet-form").onsubmit=e=>{e.preventDefault();runWallet(document.getElementById("wallet-input").value)};
+    document.getElementById("scan-lived").onclick=()=>{
+      const input=document.getElementById("token-input");
+      input.value=LIVED_MINT;
+      input.dispatchEvent(new Event("input"));
+      runToken(LIVED_MINT);
+    };
+
+    setupClear("token-input","clear-token","token-out");
+    setupClear("wallet-input","clear-wallet","wallet-out");
+
+    renderWatch();
+  </script>
+</body>
+</html>
