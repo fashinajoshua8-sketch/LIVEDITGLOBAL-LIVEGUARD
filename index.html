@@ -259,24 +259,68 @@
       };
     }
     function rollVerdict(f){if(f.some(x=>x.level==="high"))return "high";if(f.some(x=>x.level==="caution"))return "caution";return "clear"}
-    function verdictCopy(v){if(v==="high")return{label:"High risk",blurb:"Do not buy until you understand these flags.",cls:"high"};if(v==="caution")return{label:"Caution",blurb:"Some flags. Read them before you size in.",cls:"warn"};return{label:"Clear",blurb:"Mint and freeze look revoked. Still DYOR.",cls:"ok"}}
+    function verdictCopy(v){if(v==="high")return{label:"Flags found",blurb:"Review the specific findings below.",cls:"high"};if(v==="caution")return{label:"Review findings",blurb:"Review the specific findings below.",cls:"warn"};return{label:"No major flags",blurb:"Mint and freeze look revoked. Still DYOR.",cls:"ok"}}
     function normalizeAddress(value){return typeof value==="string"?value.trim():""}
 
-    // Identify known liquidity-market addresses so an LP is not presented as a human holder.
+    function addressEquals(a,b){
+      return !!a&&!!b&&String(a).trim().toLowerCase()===String(b).trim().toLowerCase();
+    }
+
+    // Recursively collect public keys that appear inside market/LP/AMM metadata.
+    // This catches pool authorities, vault owners and market accounts even when
+    // RugCheck does not put them in one fixed property name.
+    function collectTaggedAddresses(node,context="",out=new Set()){
+      if(node==null)return out;
+
+      if(Array.isArray(node)){
+        for(const item of node) collectTaggedAddresses(item,context,out);
+        return out;
+      }
+
+      if(typeof node!=="object")return out;
+
+      const local=Object.entries(node)
+        .filter(([k,v])=>typeof v==="string")
+        .map(([k,v])=>String(k)+" "+String(v))
+        .join(" ");
+
+      const nextContext=(context+" "+local).toLowerCase();
+      const tagged=/(liquidity|liquidity pool|pool|amm|market|vault|bonding curve|lp)/i.test(nextContext);
+
+      for(const [key,value] of Object.entries(node)){
+        if(typeof value==="string" && isPubkey(value) && tagged){
+          out.add(value);
+        }
+        if(isPubkey(key) && tagged){
+          out.add(key);
+        }
+        if(typeof value==="object" && value!==null){
+          collectTaggedAddresses(value,nextContext,out);
+        }
+      }
+
+      return out;
+    }
+
     function collectMarketAddresses(markets){
-      const addresses=new Set();
+      const addresses=collectTaggedAddresses(markets,"market liquidity pool amm lp");
       for(const market of markets||[]){
         const candidates=[
           market?.lp?.address,market?.lp?.pubkey,market?.lp?.id,market?.lp?.authority,
           market?.address,market?.pubkey,market?.id,market?.market,market?.marketAddress,
-          market?.pool,market?.poolAddress,market?.amm,market?.ammId,market?.ammAddress
+          market?.pool,market?.poolAddress,market?.amm,market?.ammId,market?.ammAddress,
+          market?.lpMint,market?.lpTokenAccount
         ];
         for(const value of candidates){
           const address=normalizeAddress(value);
-          if(isPubkey(address)) addresses.add(address);
+          if(isPubkey(address))addresses.add(address);
         }
       }
       return addresses;
+    }
+
+    function collectKnownAccountAddresses(knownAccounts){
+      return collectTaggedAddresses(knownAccounts,"known account");
     }
 
     function marketNameFor(markets,address){
@@ -286,38 +330,151 @@
           market?.address,market?.pubkey,market?.id,market?.market,market?.marketAddress,
           market?.pool,market?.poolAddress,market?.amm,market?.ammId,market?.ammAddress
         ].map(normalizeAddress);
-        if(candidates.includes(address)){
-          return market?.lp?.name||market?.name||market?.marketName||market?.dex||market?.source||"Liquidity pool";
+
+        if(candidates.some(a=>addressEquals(a,address))){
+          return market?.lp?.name||market?.name||market?.marketName||market?.dex||market?.source||"Liquidity pool / AMM";
         }
       }
-      return "Liquidity pool";
+      return "Liquidity pool / AMM";
     }
 
-    async function resolveTopHolder(rug,holderAddress){
-      const address=normalizeAddress(holderAddress);
-      if(!isPubkey(address)) return {address:null,isLp:false,label:null};
+    // RugCheck can expose known accounts as an object or array. Search it for
+    // the holder address and only classify it as LP when the metadata says so.
+    function knownAccountLpLabel(knownAccounts,address){
+      const target=normalizeAddress(address).toLowerCase();
+      let label=null;
+
+      function walk(node){
+        if(label||node==null)return;
+
+        if(Array.isArray(node)){
+          for(const item of node) walk(item);
+          return;
+        }
+
+        if(typeof node!=="object")return;
+
+        const entries=Object.entries(node);
+        const objectText=JSON.stringify(node).toLowerCase();
+
+        // If this object contains the target address, inspect the entire object
+        // for its classification/name instead of only the address field.
+        const containsTarget=entries.some(([key,value])=>
+          addressEquals(key,target)||addressEquals(value,target)
+        );
+
+        if(containsTarget && /(liquidity|pool|amm|market|vault|bonding curve|lp)/i.test(objectText)){
+          const preferred=entries.find(([key,value])=>
+            /name|label|type|description|source|program/i.test(key) &&
+            typeof value==="string" &&
+            !addressEquals(value,target)
+          );
+          label=preferred?.[1]||"Liquidity pool / AMM";
+          return;
+        }
+
+        for(const [key,value] of entries){
+          if(addressEquals(key,target)){
+            if(typeof value==="string" && /(liquidity|pool|amm|market|vault|lp)/i.test(value)){
+              label=value;
+              return;
+            }
+          }
+          walk(value);
+          if(label)return;
+        }
+      }
+
+      walk(knownAccounts);
+      return label;
+    }
+
+    async function resolveAccountOwner(address){
+      const raw=normalizeAddress(address);
+      if(!isPubkey(raw))return null;
+
+      try{
+        const account=await rpc("getParsedAccountInfo",[raw,{commitment:"confirmed"}]);
+        return normalizeAddress(account?.value?.data?.parsed?.info?.owner)||null;
+      }catch{
+        return null;
+      }
+    }
+
+    async function classifyHolder(holder,rug,dex,mint){
+      const address=normalizeAddress(
+        holder?.address||holder?.owner||holder?.wallet||
+        holder?.account||holder?.tokenAccount||holder?.pubkey
+      );
+
+      const text=JSON.stringify(holder||{}).toLowerCase();
+
+      // Explicit RugCheck holder metadata wins.
+      if(
+        holder?.isLp||holder?.isLP||holder?.isPool||
+        /liquidity|pool|amm|bonding curve/i.test(String(holder?.type||""))||
+        /liquidity|pool|amm|bonding curve/i.test(String(holder?.name||""))
+      ){
+        return {address,isLp:true,label:holder?.name||holder?.type||"Liquidity pool / AMM"};
+      }
 
       const marketAddresses=collectMarketAddresses(rug?.markets);
+      for(const a of collectKnownAccountAddresses(rug?.knownAccounts)) marketAddresses.add(a);
+      const pairAddress=normalizeAddress(dex?.pairAddress);
 
+      // Direct match against the DEX pair or RugCheck market addresses.
       if(marketAddresses.has(address)){
         return {address,isLp:true,label:marketNameFor(rug?.markets,address)};
       }
 
-      // RugCheck may return the token-account address rather than its owner.
+      if(addressEquals(address,pairAddress)){
+        return {address,isLp:true,label:(dex?.dexId||"DEX")+" liquidity pool"};
+      }
+
+      const knownLabel=knownAccountLpLabel(rug?.knownAccounts,address);
+      if(knownLabel){
+        return {address,isLp:true,label:knownLabel};
+      }
+
+      // If RugCheck returned a token-account address, inspect its authority.
+      const owner=await resolveAccountOwner(address);
+
+      if(owner){
+        if(marketAddresses.has(owner)){
+          return {address,isLp:true,label:marketNameFor(rug?.markets,owner)};
+        }
+
+        if(addressEquals(owner,pairAddress)){
+          return {address,isLp:true,label:(dex?.dexId||"DEX")+" liquidity pool"};
+        }
+
+        const ownerKnownLabel=knownAccountLpLabel(rug?.knownAccounts,owner);
+        if(ownerKnownLabel){
+          return {address,isLp:true,label:ownerKnownLabel};
+        }
+      }
+
+      // Check the actual largest token accounts. This catches cases where
+      // RugCheck's topHolders entry is a token-account address and the pool
+      // identity is only visible after resolving that account.
       try{
-        const account=await rpc("getParsedAccountInfo",[address,{commitment:"confirmed"}]);
-        const info=account?.value?.data?.parsed?.info;
-        if(info?.owner){
-          const owner=normalizeAddress(info.owner);
-          if(marketAddresses.has(owner)){
-            return {address,isLp:true,label:marketNameFor(rug?.markets,owner)};
+        const largest=await rpc("getTokenLargestAccounts",[mint,{commitment:"confirmed"}]);
+        for(const item of largest?.value||[]){
+          if(addressEquals(item?.address,address)){
+            const largestOwner=await resolveAccountOwner(item.address);
+            if(largestOwner){
+              if(marketAddresses.has(largestOwner)||addressEquals(largestOwner,pairAddress)){
+                return {address,isLp:true,label:(dex?.dexId||"DEX")+" liquidity pool"};
+              }
+              const label=knownAccountLpLabel(rug?.knownAccounts,largestOwner);
+              if(label)return {address,isLp:true,label};
+            }
           }
         }
       }catch{}
 
       return {address,isLp:false,label:null};
     }
-
 
     async function scanToken(mint){
       const info=await rpc("getAccountInfo",[mint,{encoding:"base64",commitment:"confirmed"}]);
@@ -378,12 +535,6 @@
           holder?.account||holder?.tokenAccount||holder?.pubkey
         );
 
-        const explicitLp=Boolean(
-          holder?.isLp||holder?.isLP||holder?.isPool||holder?.pool||
-          /liquidity|pool|amm/i.test(String(holder?.type||""))||
-          /liquidity|pool|amm/i.test(String(holder?.name||""))
-        );
-
         let resolved;
         if(explicitLp){
           resolved={isLp:true,label:holder?.name||holder?.type||"Liquidity pool / AMM"};
@@ -420,6 +571,11 @@
 
       const topHolder=walletHolderRecords[0]||null;
       const liquidityPool=lpRecords[0]||null;
+
+      // Defensive invariant: an LP record can never become the top-holder record.
+      // If the scanner cannot classify a candidate, do not label it as a top holder
+      // until its pool status is resolved.
+
 
       let lpLocked=null;
       if(rug?.markets?.length){
@@ -837,7 +993,7 @@
         const poolRecord=r.liquidityPool
           ?'<div class="holder-record lp">'+
               '<div class="record-title">Liquidity pool</div>'+
-              '<div class="muted">'+esc(r.liquidityPool.label||"AMM / LP")+'</div>'+
+              '<div class="muted">Separate from token holders · '+esc(r.liquidityPool.label||"AMM / LP")+'</div>'+
               '<div class="record-pct">'+
                 (r.liquidityPool.pct!=null?r.liquidityPool.pct.toFixed(1)+"%":"—")+
               '</div>'+
@@ -912,7 +1068,7 @@
               '<div class="badge '+copy.cls+'"><b>'+esc(copy.label)+'</b></div>'+
             '</div>'+
             '<div class="holder-grid">'+poolRecord+holderRecord+'</div>'+
-            '<p class="muted" style="margin-bottom:0">Liquidity pools and token holders are tracked as separate entities. LP supply is excluded from the top-holder concentration warning.</p>'+
+            '<p class="muted" style="margin-bottom:0">Liquidity pools and token holders are separate entities. The liquidity pool is never used as the top-holder concentration record.</p>'+
           '</section>'+
 
           '<section class="card" style="margin-top:16px">'+
