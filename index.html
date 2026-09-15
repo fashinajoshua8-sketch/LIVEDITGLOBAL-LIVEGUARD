@@ -95,8 +95,7 @@
     .token-change{font-weight:700;font-size:13px;margin-top:5px}
     .token-change.up{color:var(--ok)}
     .token-change.down{color:var(--danger)}
-    .token-chart{height:150px;margin:16px 0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#090909}
-    .token-chart svg{width:100%;height:100%;display:block}
+    .token-chart{height:260px;margin:16px 0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#090909}
     .token-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
     @media(min-width:700px){.token-metrics{grid-template-columns:repeat(4,1fr)}}
     .token-metric{padding:12px;border:1px solid var(--line);border-radius:12px;background:#141414}
@@ -150,12 +149,12 @@
       <main>
         <div style="text-align:center;max-width:640px;margin:0 auto">
           <p class="stamp brand">Free for everyone</p>
-          <h1>Two doors.<span style="display:block;color:var(--brand)">One ledger.</span></h1>
+          <h1>Two doors. <span style="display:block;color:var(--brand)">One ledger.</span></h1>
           <p class="muted">Token scan and wallet watch are separate. No connect. No paid tier.</p>
         </div>
         <div class="grid2" style="margin-top:36px">
           <a class="door" href="#token" data-go="token"><div class="icon">S</div><h2 style="font-size:48px;margin-top:20px">Token scan</h2><p class="muted">Mint, freeze, liquidity, rug flags.</p><p class="cta">Open scanner →</p></a>
-          <a class="door" href="#wallet" data-go="wallet"><div class="icon red">W</div><h2 style="font-size:48px;margin-top:20px">Wallet watch</h2><p class="muted">DNA, chapters, shareable LIVED Card.</p><p class="cta">Open watch →</p></a>
+          <a class="door" href="#wallet" data-go="wallet"><div class="icon red">W</div><h2 style="font-size:48px;margin-top:20px">Wallet watch</h2><p class="muted">Holdings, balances, and shareable LIVED Card.</p><p class="cta">Open watch →</p></a>
         </div>
         <div id="hub-watch"></div>
       </main>
@@ -200,7 +199,29 @@
     const LIVED_MINT = "2EezXNFBntMF1m7Mp4SJ9jc7vUDN9KaAGjwGhe2Xjupx";
     const TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
     const TOKEN_2022 = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
-    const RPCS = ["https://api.mainnet-beta.solana.com","https://solana-rpc.publicnode.com"];
+    const WSOL_MINT = "So11111111111111111111111111111111111111112";
+
+    const RPCS = [
+      "https://mainnet.helius-rpc.com/?api-key=be651d89-584a-41ec-b11c-341d806c19a2",
+      "https://solana-rpc.publicnode.com"
+    ];
+
+    const KNOWN_AMM_IDS = new Set([
+      "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+      "5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1",
+      "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+      "CPMDWBwJDtYax9qW7AyRuVC19Cc4L4Vcy4n2BHAbHkCW",
+      "D4FPEruKEHrG5GMTBSJyqrZ8MrG6No2BPA3iVu3W2TVQ",
+      "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",
+      "Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1",
+      "CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM",
+      "Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB",
+      "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+      "MoonCVVNZFSYkqNXP6bxHLPL6QQJiMagDL3qcqUQTrG",
+      "srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX"
+    ]);
+
     const PROGRAMS = {
       JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4:{name:"Jupiter",kind:"defi"},
       whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc:{name:"Orca",kind:"defi"},
@@ -210,47 +231,86 @@
       BPFLoaderUpgradeab1e11111111111111111111111:{name:"BPF Loader",kind:"build"},
       T1pyyaTNZsGrQ9PZeC7ssKxKzqprGxHbKcuW2SUz4dx:{name:"Squads",kind:"build"}
     };
+
     const ALPHA = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-    const OG_CUTOFF = Date.UTC(2022,0,1)/1000;
     document.querySelectorAll(".seal-img,#seal-live").forEach((el)=>{el.src=SEAL});
 
     function decode58(str){const bytes=[0];for(const ch of str){const val=ALPHA.indexOf(ch);if(val<0)throw new Error("bad");let carry=val;for(let i=0;i<bytes.length;i++){carry+=bytes[i]*58;bytes[i]=carry&255;carry>>=8}while(carry){bytes.push(carry&255);carry>>=8}}let z=0;for(const ch of str){if(ch==="1")z++;else break}return new Uint8Array([...Array(z).fill(0),...bytes.reverse()])}
     function encode58(buf){const bytes=Array.from(buf);let z=0;while(z<bytes.length&&bytes[z]===0)z++;const digits=[0];for(let i=z;i<bytes.length;i++){let carry=bytes[i];for(let j=0;j<digits.length;j++){carry+=digits[j]<<8;digits[j]=carry%58;carry=(carry/58)|0}while(carry){digits.push(carry%58);carry=(carry/58)|0}}return "1".repeat(z)+digits.reverse().map(d=>ALPHA[d]).join("")}
     function isPubkey(raw){try{return decode58(raw.trim()).length===32}catch{return false}}
-    function shortAddr(a){return a.length<10?a:a.slice(0,4)+"…" +a.slice(-4)}
-    function formatUsd(n){if(n==null||!Number.isFinite(n))return "—";if(n>=1e6)return "$"+(n/1e6).toFixed(2)+"M";if(n>=1e3)return "$"+(n/1e3).toFixed(1)+"k";if(n>=1)return "$"+n.toFixed(2);return "$"+n.toPrecision(3)}
+    function shortAddr(a){return a.length<10?a:a.slice(0,4)+"…"+a.slice(-4)}
+    function formatUsd(n){if(n==null||!Number.isFinite(n))return "—";if(n>=1e6)return "$"+(n/1e6).toFixed(2)+"M";if(n>=1e3)return "$"+(n/1e3).toFixed(2)+"k";if(n>=1)return "$"+n.toFixed(2);return "$"+n.toPrecision(3)}
     function formatWhen(u){return new Date(u*1000).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}
-    function formatAge(d){if(d==null)return "—";if(d<31)return d+"d";const y=d/365.25;return y>=1?y.toFixed(1)+" yrs":Math.round(d/30.4)+" mo"}
-    function formatSupply(raw,decimals){const n=Number(raw)/10**decimals;if(!Number.isFinite(n))return raw;if(n>=1e9)return (n/1e9).toFixed(2)+"B";if(n>=1e6)return (n/1e6).toFixed(2)+"M";if(n>=1e3)return (n/1e3).toFixed(1)+"k";return n.toLocaleString(undefined,{maximumFractionDigits:4})}
-    function esc(s){const map={"&":"&"+"amp;","<":"&"+"lt;",">":"&"+"gt;",'"':"&"+"quot;","'":"&#39;"};return String(s??"").replace(/[&<>"']/g,c=>map[c])}
 
-    let rpcIndex=0;
+    function formatTokenAmount(raw, decimals, uiString) {
+      if (uiString != null && uiString !== "") {
+        const num = Number(uiString);
+        if (num >= 1e9) return (num / 1e9).toFixed(2) + "B";
+        if (num >= 1e6) return (num / 1e6).toFixed(2) + "M";
+        if (num >= 1e3) return (num / 1e3).toFixed(2) + "k";
+        return num.toLocaleString(undefined, { maximumFractionDigits: 4 });
+      }
+      try {
+        const b = BigInt(raw);
+        const dec = Number(decimals) || 0;
+        const div = 10n ** BigInt(dec);
+        const intP = b / div;
+        const fracP = b % div;
+        const n = Number(intP) + Number(fracP) / (10 ** dec);
+        if (!Number.isFinite(n)) return intP.toString();
+        if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
+        if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
+        if (n >= 1e3) return (n / 1e3).toFixed(2) + "k";
+        return n.toLocaleString(undefined, { maximumFractionDigits: 4 });
+      } catch {
+        return String(raw);
+      }
+    }
+
+    function esc(s){const map={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"};return String(s??"").replace(/[&<>"']/g,c=>map[c])}
+
+    let rpcIndex = 0;
     async function rpc(method,params,ms=12000){
-      const body=JSON.stringify({jsonrpc:"2.0",id:1,method,params});
-      let last=new Error("RPC failed");
-      for(let i=0;i<RPCS.length;i++){
-        const url=RPCS[(rpcIndex+i)%RPCS.length];
-        const ctrl=new AbortController();
-        const t=setTimeout(()=>ctrl.abort(),ms);
+      const body = JSON.stringify({jsonrpc:"2.0",id:1,method,params});
+      let last = new Error("RPC failed");
+      for(let i=0; i<RPCS.length; i++){
+        const url = RPCS[(rpcIndex+i)%RPCS.length];
+        const ctrl = new AbortController();
+        const t = setTimeout(()=>ctrl.abort(),ms);
         try{
-          const res=await fetch(url,{method:"POST",headers:{"content-type":"application/json"},body,signal:ctrl.signal});
-          const json=await res.json();
+          const res = await fetch(url,{method:"POST",headers:{"content-type":"application/json"},body,signal:ctrl.signal});
+          if(!res.ok) throw new Error("HTTP "+res.status);
+          const json = await res.json();
           if(json.error) throw new Error(json.error.message||"RPC error");
-          rpcIndex=(rpcIndex+i)%RPCS.length;
+          rpcIndex = (rpcIndex+i)%RPCS.length;
           return json.result;
-        }catch(err){last=err}finally{clearTimeout(t)}
+        }catch(err){
+          last = err;
+        }finally{
+          clearTimeout(t);
+        }
       }
       throw last;
     }
+
     async function getJson(url,ms=8000){
-      const ctrl=new AbortController();
-      const t=setTimeout(()=>ctrl.abort(),ms);
-      try{const res=await fetch(url,{headers:{accept:"application/json"},signal:ctrl.signal});if(!res.ok)return null;return await res.json()}catch{return null}finally{clearTimeout(t)}
+      const ctrl = new AbortController();
+      const t = setTimeout(()=>ctrl.abort(),ms);
+      try{
+        const res = await fetch(url,{headers:{accept:"application/json"},signal:ctrl.signal});
+        if(!res.ok) return null;
+        return await res.json();
+      }catch{
+        return null;
+      }finally{
+        clearTimeout(t);
+      }
     }
+
     function decodeMint(bytes){
-      if(bytes.length<82)return null;
-      const u32=o=>bytes[o]|(bytes[o+1]<<8)|(bytes[o+2]<<16)|(bytes[o+3]<<24);
-      const view=new DataView(bytes.buffer,bytes.byteOffset+36,8);
+      if(bytes.length<82) return null;
+      const u32 = o=>bytes[o]|(bytes[o+1]<<8)|(bytes[o+2]<<16)|(bytes[o+3]<<24);
+      const view = new DataView(bytes.buffer,bytes.byteOffset+36,8);
       return{
         mintAuthority:u32(0)===0?null:encode58(bytes.slice(4,36)),
         freezeAuthority:u32(46)===0?null:encode58(bytes.slice(50,82)),
@@ -258,334 +318,249 @@
         decimals:bytes[44]||0
       };
     }
+
     function rollVerdict(f){if(f.some(x=>x.level==="high"))return "high";if(f.some(x=>x.level==="caution"))return "caution";return "clear"}
     function verdictCopy(v){if(v==="high")return{label:"Flags found",blurb:"Review the specific findings below.",cls:"high"};if(v==="caution")return{label:"Review findings",blurb:"Review the specific findings below.",cls:"warn"};return{label:"No major flags",blurb:"Mint and freeze look revoked. Still DYOR.",cls:"ok"}}
     function normalizeAddress(value){return typeof value==="string"?value.trim():""}
 
     function addressEquals(a,b){
-      return !!a&&!!b&&String(a).trim().toLowerCase()===String(b).trim().toLowerCase();
+      return !!a && !!b && String(a).trim().toLowerCase()===String(b).trim().toLowerCase();
     }
 
-    // Recursively collect public keys that appear inside market/LP/AMM metadata.
-    // This catches pool authorities, vault owners and market accounts even when
-    // RugCheck does not put them in one fixed property name.
     function collectTaggedAddresses(node,context="",out=new Set()){
-      if(node==null)return out;
-
+      if(node==null) return out;
       if(Array.isArray(node)){
         for(const item of node) collectTaggedAddresses(item,context,out);
         return out;
       }
-
-      if(typeof node!=="object")return out;
-
-      const local=Object.entries(node)
-        .filter(([k,v])=>typeof v==="string")
-        .map(([k,v])=>String(k)+" "+String(v))
-        .join(" ");
-
-      const nextContext=(context+" "+local).toLowerCase();
-      const tagged=/(liquidity|liquidity pool|pool|amm|market|vault|bonding curve|lp)/i.test(nextContext);
-
+      if(typeof node!=="object") return out;
+      const local = Object.entries(node).filter(([k,v])=>typeof v==="string").map(([k,v])=>String(k)+" "+String(v)).join(" ");
+      const nextContext = (context+" "+local).toLowerCase();
+      const tagged = /(liquidity|liquidity pool|pool|amm|market|vault|bonding curve|lp)/i.test(nextContext);
       for(const [key,value] of Object.entries(node)){
-        if(typeof value==="string" && isPubkey(value) && tagged){
-          out.add(value);
-        }
-        if(isPubkey(key) && tagged){
-          out.add(key);
-        }
-        if(typeof value==="object" && value!==null){
-          collectTaggedAddresses(value,nextContext,out);
-        }
+        if(typeof value==="string" && isPubkey(value) && tagged) out.add(value);
+        if(isPubkey(key) && tagged) out.add(key);
+        if(typeof value==="object" && value!==null) collectTaggedAddresses(value,nextContext,out);
       }
-
       return out;
     }
 
     function collectMarketAddresses(markets){
-      const addresses=collectTaggedAddresses(markets,"market liquidity pool amm lp");
+      const addresses = collectTaggedAddresses(markets,"market liquidity pool amm lp");
       for(const market of markets||[]){
-        const candidates=[
-          market?.lp?.address,market?.lp?.pubkey,market?.lp?.id,market?.lp?.authority,
-          market?.address,market?.pubkey,market?.id,market?.market,market?.marketAddress,
-          market?.pool,market?.poolAddress,market?.amm,market?.ammId,market?.ammAddress,
-          market?.lpMint,market?.lpTokenAccount
+        const candidates = [
+          market?.lp?.address, market?.lp?.pubkey, market?.lp?.id, market?.lp?.authority,
+          market?.address, market?.pubkey, market?.id, market?.market, market?.marketAddress,
+          market?.pool, market?.poolAddress, market?.amm, market?.ammId, market?.ammAddress,
+          market?.lpMint, market?.lpTokenAccount,
+          market?.baseVault, market?.quoteVault, market?.vault, market?.tokenVault, market?.poolVault
         ];
         for(const value of candidates){
-          const address=normalizeAddress(value);
-          if(isPubkey(address))addresses.add(address);
+          const address = normalizeAddress(value);
+          if(isPubkey(address)) addresses.add(address);
         }
       }
       return addresses;
     }
 
-    function collectKnownAccountAddresses(knownAccounts){
-      return collectTaggedAddresses(knownAccounts,"known account");
-    }
-
     function marketNameFor(markets,address){
       for(const market of markets||[]){
-        const candidates=[
-          market?.lp?.address,market?.lp?.pubkey,market?.lp?.id,market?.lp?.authority,
-          market?.address,market?.pubkey,market?.id,market?.market,market?.marketAddress,
-          market?.pool,market?.poolAddress,market?.amm,market?.ammId,market?.ammAddress
+        const candidates = [
+          market?.lp?.address, market?.lp?.pubkey, market?.lp?.id, market?.lp?.authority,
+          market?.address, market?.pubkey, market?.id, market?.market, market?.marketAddress,
+          market?.pool, market?.poolAddress, market?.amm, market?.ammId, market?.ammAddress,
+          market?.baseVault, market?.quoteVault, market?.vault, market?.tokenVault, market?.poolVault
         ].map(normalizeAddress);
-
         if(candidates.some(a=>addressEquals(a,address))){
-          return market?.lp?.name||market?.name||market?.marketName||market?.dex||market?.source||"Liquidity pool / AMM";
+          return market?.lp?.name || market?.name || market?.marketName || market?.dex || market?.source || "Liquidity pool / AMM";
         }
       }
       return "Liquidity pool / AMM";
     }
 
-    // RugCheck can expose known accounts as an object or array. Search it for
-    // the holder address and only classify it as LP when the metadata says so.
     function knownAccountLpLabel(knownAccounts,address){
-      const target=normalizeAddress(address).toLowerCase();
-      let label=null;
-
+      const target = normalizeAddress(address).toLowerCase();
+      let label = null;
       function walk(node){
-        if(label||node==null)return;
-
+        if(label || node==null) return;
         if(Array.isArray(node)){
           for(const item of node) walk(item);
           return;
         }
-
-        if(typeof node!=="object")return;
-
-        const entries=Object.entries(node);
-        const objectText=JSON.stringify(node).toLowerCase();
-
-        // If this object contains the target address, inspect the entire object
-        // for its classification/name instead of only the address field.
-        const containsTarget=entries.some(([key,value])=>
-          addressEquals(key,target)||addressEquals(value,target)
-        );
-
+        if(typeof node!=="object") return;
+        const entries = Object.entries(node);
+        const objectText = JSON.stringify(node).toLowerCase();
+        const containsTarget = entries.some(([key,value])=>addressEquals(key,target)||addressEquals(value,target));
         if(containsTarget && /(liquidity|pool|amm|market|vault|bonding curve|lp)/i.test(objectText)){
-          const preferred=entries.find(([key,value])=>
-            /name|label|type|description|source|program/i.test(key) &&
-            typeof value==="string" &&
-            !addressEquals(value,target)
-          );
-          label=preferred?.[1]||"Liquidity pool / AMM";
+          const preferred = entries.find(([key,value])=>/name|label|type|description|source|program/i.test(key) && typeof value==="string" && !addressEquals(value,target));
+          label = preferred?.[1] || "Liquidity pool / AMM";
           return;
         }
-
         for(const [key,value] of entries){
           if(addressEquals(key,target)){
             if(typeof value==="string" && /(liquidity|pool|amm|market|vault|lp)/i.test(value)){
-              label=value;
+              label = value;
               return;
             }
           }
           walk(value);
-          if(label)return;
+          if(label) return;
         }
       }
-
       walk(knownAccounts);
       return label;
     }
 
     async function resolveAccountOwner(address){
-      const raw=normalizeAddress(address);
-      if(!isPubkey(raw))return null;
-
+      const raw = normalizeAddress(address);
+      if(!isPubkey(raw)) return null;
       try{
-        const account=await rpc("getParsedAccountInfo",[raw,{commitment:"confirmed"}]);
-        return normalizeAddress(account?.value?.data?.parsed?.info?.owner)||null;
+        const account = await rpc("getParsedAccountInfo",[raw,{commitment:"confirmed"}]);
+        const tokenAccountOwner = normalizeAddress(account?.value?.data?.parsed?.info?.owner);
+        const programOwner = normalizeAddress(account?.value?.owner);
+        return {
+          tokenAccountOwner: tokenAccountOwner || null,
+          programOwner: programOwner || null
+        };
       }catch{
         return null;
       }
     }
 
     async function classifyHolder(holder,rug,dex,mint){
-      const address=normalizeAddress(
-        holder?.address||holder?.owner||holder?.wallet||
-        holder?.account||holder?.tokenAccount||holder?.pubkey
+      const address = normalizeAddress(
+        holder?.address || holder?.owner || holder?.wallet ||
+        holder?.account || holder?.tokenAccount || holder?.pubkey
       );
 
-      const text=JSON.stringify(holder||{}).toLowerCase();
-
-      // Explicit RugCheck holder metadata wins.
       if(
-        holder?.isLp||holder?.isLP||holder?.isPool||
-        /liquidity|pool|amm|bonding curve/i.test(String(holder?.type||""))||
-        /liquidity|pool|amm|bonding curve/i.test(String(holder?.name||""))
+        holder?.isLp || holder?.isLP || holder?.isPool ||
+        /liquidity|pool|amm|bonding curve|vault/i.test(String(holder?.type || "")) ||
+        /liquidity|pool|amm|bonding curve|vault/i.test(String(holder?.name || ""))
       ){
-        return {address,isLp:true,label:holder?.name||holder?.type||"Liquidity pool / AMM"};
+        return {address, isLp:true, label:holder?.name || holder?.type || "Liquidity pool / AMM"};
       }
 
-      const marketAddresses=collectMarketAddresses(rug?.markets);
-      for(const a of collectKnownAccountAddresses(rug?.knownAccounts)) marketAddresses.add(a);
-      const pairAddress=normalizeAddress(dex?.pairAddress);
+      if(KNOWN_AMM_IDS.has(address)){
+        return {address, isLp:true, label:"Liquidity pool / AMM"};
+      }
 
-      // Direct match against the DEX pair or RugCheck market addresses.
+      const marketAddresses = collectMarketAddresses(rug?.markets);
+      for(const a of collectTaggedAddresses(rug?.knownAccounts,"known account")){
+        marketAddresses.add(a);
+      }
+
+      const pairAddress = normalizeAddress(dex?.pairAddress);
       if(marketAddresses.has(address)){
-        return {address,isLp:true,label:marketNameFor(rug?.markets,address)};
+        return {address, isLp:true, label:marketNameFor(rug?.markets,address)};
       }
-
       if(addressEquals(address,pairAddress)){
-        return {address,isLp:true,label:(dex?.dexId||"DEX")+" liquidity pool"};
+        return {address, isLp:true, label:(dex?.dexId||"DEX")+" liquidity pool"};
       }
 
-      const knownLabel=knownAccountLpLabel(rug?.knownAccounts,address);
+      const knownLabel = knownAccountLpLabel(rug?.knownAccounts,address);
       if(knownLabel){
-        return {address,isLp:true,label:knownLabel};
+        return {address, isLp:true, label:knownLabel};
       }
 
-      // If RugCheck returned a token-account address, inspect its authority.
-      const owner=await resolveAccountOwner(address);
-
-      if(owner){
-        if(marketAddresses.has(owner)){
-          return {address,isLp:true,label:marketNameFor(rug?.markets,owner)};
+      const owners = await resolveAccountOwner(address);
+      if(owners){
+        const {tokenAccountOwner, programOwner} = owners;
+        if(
+          (tokenAccountOwner && KNOWN_AMM_IDS.has(tokenAccountOwner)) ||
+          (programOwner && KNOWN_AMM_IDS.has(programOwner)) ||
+          (tokenAccountOwner && marketAddresses.has(tokenAccountOwner)) ||
+          (tokenAccountOwner && addressEquals(tokenAccountOwner,pairAddress))
+        ){
+          return {
+            address,
+            isLp:true,
+            label: tokenAccountOwner && marketAddresses.has(tokenAccountOwner)
+              ? marketNameFor(rug?.markets,tokenAccountOwner)
+              : (dex?.dexId||"DEX")+" liquidity pool"
+          };
         }
 
-        if(addressEquals(owner,pairAddress)){
-          return {address,isLp:true,label:(dex?.dexId||"DEX")+" liquidity pool"};
-        }
-
-        const ownerKnownLabel=knownAccountLpLabel(rug?.knownAccounts,owner);
-        if(ownerKnownLabel){
-          return {address,isLp:true,label:ownerKnownLabel};
-        }
-      }
-
-      // Check the actual largest token accounts. This catches cases where
-      // RugCheck's topHolders entry is a token-account address and the pool
-      // identity is only visible after resolving that account.
-      try{
-        const largest=await rpc("getTokenLargestAccounts",[mint,{commitment:"confirmed"}]);
-        for(const item of largest?.value||[]){
-          if(addressEquals(item?.address,address)){
-            const largestOwner=await resolveAccountOwner(item.address);
-            if(largestOwner){
-              if(marketAddresses.has(largestOwner)||addressEquals(largestOwner,pairAddress)){
-                return {address,isLp:true,label:(dex?.dexId||"DEX")+" liquidity pool"};
-              }
-              const label=knownAccountLpLabel(rug?.knownAccounts,largestOwner);
-              if(label)return {address,isLp:true,label};
-            }
+        if(tokenAccountOwner){
+          const ownerKnownLabel = knownAccountLpLabel(rug?.knownAccounts,tokenAccountOwner);
+          if(ownerKnownLabel){
+            return {address, isLp:true, label:ownerKnownLabel};
           }
         }
-      }catch{}
+      }
 
-      return {address,isLp:false,label:null};
+      return {address, isLp:false, label:null};
     }
 
     async function scanToken(mint){
-      const info=await rpc("getAccountInfo",[mint,{encoding:"base64",commitment:"confirmed"}]);
+      const info = await rpc("getAccountInfo",[mint,{encoding:"base64",commitment:"confirmed"}]);
       if(!info?.value) throw new Error("That address is not a token mint. Try Wallet watch instead.");
-      const owner=info.value.owner;
-      if(owner!==TOKEN_PROGRAM&&owner!==TOKEN_2022) throw new Error("That address is not a token mint. Try Wallet watch instead.");
+      const owner = info.value.owner;
+      if(owner!==TOKEN_PROGRAM && owner!==TOKEN_2022) throw new Error("That address is not a token mint. Try Wallet watch instead.");
 
-      const raw=Uint8Array.from(atob(info.value.data[0]),c=>c.charCodeAt(0));
-      const decoded=decodeMint(raw);
+      const raw = Uint8Array.from(atob(info.value.data[0]),c=>c.charCodeAt(0));
+      const decoded = decodeMint(raw);
 
-      const [dexJson,rug]=await Promise.all([
+      const [dexJson,rug] = await Promise.all([
         getJson("https://api.dexscreener.com/latest/dex/tokens/"+mint),
         getJson("https://api.rugcheck.xyz/v1/tokens/"+mint+"/report")
       ]);
 
-      const pairs=(dexJson?.pairs||[])
+      const pairs = (dexJson?.pairs||[])
         .filter(p=>p.chainId==="solana")
         .sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0));
 
-      const dex=pairs[0]||null;
-      const mintAuthority=decoded?.mintAuthority||null;
-      const freezeAuthority=decoded?.freezeAuthority||null;
-      const decimals=decoded?.decimals??null;
-      const supplyUi=decoded&&decimals!=null?formatSupply(decoded.supply,decimals):null;
+      const dex = pairs[0] || null;
+      const mintAuthority = decoded?.mintAuthority || null;
+      const freezeAuthority = decoded?.freezeAuthority || null;
+      const decimals = decoded?.decimals??null;
+      const supplyUi = decoded && decimals!=null ? formatTokenAmount(decoded.supply,decimals) : null;
 
-      const name=rug?.tokenMeta?.name||dex?.baseToken?.name||null;
-      const symbol=rug?.tokenMeta?.symbol||dex?.baseToken?.symbol||null;
-      const imageUrl=rug?.fileMeta?.image||dex?.info?.imageUrl||null;
+      const name = rug?.tokenMeta?.name || dex?.baseToken?.name || null;
+      const symbol = rug?.tokenMeta?.symbol || dex?.baseToken?.symbol || null;
+      const imageUrl = rug?.fileMeta?.image || dex?.info?.imageUrl || null;
 
-      const priceUsd=dex?.priceUsd?Number(dex.priceUsd):null;
-      const priceChange24h=dex?.priceChange?.h24!=null?Number(dex.priceChange.h24):null;
-      const liquidityUsd=dex?.liquidity?.usd??null;
-      const volume24h=dex?.volume?.h24??null;
-      const marketCap=dex?.marketCap??dex?.fdv??null;
-      const fdv=dex?.fdv??null;
-      const pairAgeHours=dex?.pairCreatedAt?Math.max(0,(Date.now()-dex.pairCreatedAt)/36e5):null;
+      const priceUsd = dex?.priceUsd ? Number(dex.priceUsd) : null;
+      const priceChange24h = dex?.priceChange?.h24!=null ? Number(dex.priceChange.h24) : null;
+      const liquidityUsd = dex?.liquidity?.usd ?? null;
+      const volume24h = dex?.volume?.h24 ?? null;
+      const marketCap = dex?.marketCap ?? dex?.fdv ?? null;
+      const fdv = dex?.fdv ?? null;
+      const pairAgeHours = dex?.pairCreatedAt ? Math.max(0,(Date.now()-dex.pairCreatedAt)/36e5) : null;
 
-      // Build explicit holder records. LPs are kept separate from real top holders.
-      const holderCandidates=Array.isArray(rug?.topHolders)?rug.topHolders.slice(0,50):[];
-      const dexPoolAddresses=new Set();
-      for(const pair of pairs){
-        const candidates=[pair?.pairAddress,pair?.marketAddress,pair?.ammId,pair?.poolAddress];
-        for(const value of candidates){
-          const address=normalizeAddress(value);
-          if(isPubkey(address)) dexPoolAddresses.add(address);
-        }
-      }
-      const holderRecords=[];
+      const holderCandidates = Array.isArray(rug?.topHolders) ? rug.topHolders.slice(0,35) : [];
+      const holderRecords = [];
 
       for(const holder of holderCandidates){
-        const pctRaw=holder?.pct;
-        const pct=pctRaw==null||!Number.isFinite(Number(pctRaw))
-          ?null
-          :(Number(pctRaw)<=1?Number(pctRaw)*100:Number(pctRaw));
+        const pctRaw = holder?.pct;
+        const pct = pctRaw==null || !Number.isFinite(Number(pctRaw))
+          ? null
+          : (Number(pctRaw)<=1 ? Number(pctRaw)*100 : Number(pctRaw));
 
-        const address=normalizeAddress(
-          holder?.address||holder?.owner||holder?.wallet||
-          holder?.account||holder?.tokenAccount||holder?.pubkey
-        );
-
-        let resolved;
-        if(explicitLp){
-          resolved={isLp:true,label:holder?.name||holder?.type||"Liquidity pool / AMM"};
-        }else if(address && dexPoolAddresses.has(address)){
-          resolved={isLp:true,label:"Liquidity pool / AMM"};
-        }else{
-          resolved=await resolveTopHolder(rug,address);
-          if(!resolved.isLp && address){
-            try{
-              const account=await rpc("getParsedAccountInfo",[address,{commitment:"confirmed"}]);
-              const ownerAddress=normalizeAddress(account?.value?.data?.parsed?.info?.owner);
-              if(ownerAddress && dexPoolAddresses.has(ownerAddress)){
-                resolved={isLp:true,label:"Liquidity pool / AMM"};
-              }
-            }catch{}
-          }
-        }
+        const address = normalizeAddress(holder?.address || holder?.owner || holder?.wallet || holder?.account || holder?.tokenAccount || holder?.pubkey);
+        const resolved = await classifyHolder(holder,rug,dex,mint);
 
         holderRecords.push({
           address,
           pct,
-          isLp:resolved.isLp,
-          label:resolved.label||null
+          isLp: resolved.isLp,
+          label: resolved.label || null
         });
       }
 
-      const lpRecords=holderRecords
-        .filter(h=>h.isLp)
-        .sort((a,b)=>(b.pct||0)-(a.pct||0));
+      const lpRecords = holderRecords.filter(h=>h.isLp).sort((a,b)=>(b.pct||0)-(a.pct||0));
+      const walletHolderRecords = holderRecords.filter(h=>!h.isLp).sort((a,b)=>(b.pct||0)-(a.pct||0));
+      const topHolder = walletHolderRecords[0] || null;
+      const liquidityPool = lpRecords[0] || null;
 
-      const walletHolderRecords=holderRecords
-        .filter(h=>!h.isLp)
-        .sort((a,b)=>(b.pct||0)-(a.pct||0));
-
-      const topHolder=walletHolderRecords[0]||null;
-      const liquidityPool=lpRecords[0]||null;
-
-      // Defensive invariant: an LP record can never become the top-holder record.
-      // If the scanner cannot classify a candidate, do not label it as a top holder
-      // until its pool status is resolved.
-
-
-      let lpLocked=null;
+      let lpLocked = null;
       if(rug?.markets?.length){
-        const anyLocked=rug.markets.some(m=>m.lp?.lpLocked||(m.lp?.lpLockedPct||0)>=95);
-        const anyInfo=rug.markets.some(m=>m.lp&&(m.lp.lpLocked!=null||m.lp.lpLockedPct!=null));
-        lpLocked=anyInfo?anyLocked:null;
+        const anyLocked = rug.markets.some(m=>m.lp?.lpLocked || (m.lp?.lpLockedPct||0)>=95);
+        const anyInfo = rug.markets.some(m=>m.lp && (m.lp.lpLocked!=null || m.lp.lpLockedPct!=null));
+        lpLocked = anyInfo ? anyLocked : null;
       }
 
-      const findings=[];
-
+      const findings = [];
       if(mintAuthority)
         findings.push({level:"high",title:"Mint authority is live",detail:"Someone can still mint more ("+shortAddr(mintAuthority)+")."});
       else
@@ -605,10 +580,9 @@
       else
         findings.push({level:"ok",title:"Pool has size",detail:"Largest pool is about $"+Math.round(liquidityUsd).toLocaleString()+"."});
 
-      if(pairAgeHours!=null&&pairAgeHours<6)
+      if(pairAgeHours!=null && pairAgeHours<6)
         findings.push({level:"caution",title:"Fresh pair",detail:"The pool is "+pairAgeHours.toFixed(1)+" hours old."});
 
-      // IMPORTANT: LP and top holder are separate records.
       if(liquidityPool?.pct!=null)
         findings.push({
           level:"ok",
@@ -616,9 +590,9 @@
           detail:(liquidityPool.label||"Liquidity pool / AMM")+" holds about "+liquidityPool.pct.toFixed(1)+"% of supply and is excluded from top-holder concentration."
         });
 
-      if(topHolder?.pct!=null&&topHolder.pct>=40)
+      if(topHolder?.pct!=null && topHolder.pct>=40)
         findings.push({level:"high",title:"Supply is concentrated",detail:"Largest non-LP holder is about "+topHolder.pct.toFixed(1)+"%."});
-      else if(topHolder?.pct!=null&&topHolder.pct>=20)
+      else if(topHolder?.pct!=null && topHolder.pct>=20)
         findings.push({level:"caution",title:"Top holder is large",detail:"Largest non-LP holder is about "+topHolder.pct.toFixed(1)+"%."});
 
       if(lpLocked===false)
@@ -627,8 +601,8 @@
         findings.push({level:"ok",title:"LP looks locked",detail:"A reported market shows liquidity locked or burned."});
 
       for(const risk of rug?.risks||[]){
-        const level=String(risk.level||"").toLowerCase();
-        if(level==="danger"||level==="warn"||level==="warning")
+        const level = String(risk.level||"").toLowerCase();
+        if(level==="danger" || level==="warn" || level==="warning")
           findings.push({level:level==="danger"?"high":"caution",title:risk.name||"On-chain flag",detail:risk.description||"Flagged by RugCheck."});
       }
 
@@ -642,8 +616,8 @@
         freezeAuthority,
         supplyUi,
         decimals,
-        priceUsd:priceUsd!=null&&Number.isFinite(priceUsd)?priceUsd:null,
-        priceChange24h:priceChange24h!=null&&Number.isFinite(priceChange24h)?priceChange24h:null,
+        priceUsd:priceUsd!=null && Number.isFinite(priceUsd)?priceUsd:null,
+        priceChange24h:priceChange24h!=null && Number.isFinite(priceChange24h)?priceChange24h:null,
         liquidityUsd,
         volume24h,
         marketCap,
@@ -663,260 +637,152 @@
       };
     }
 
-    async function getWalletHistory(address,maxPages=25){
-      const all=[];
-      let before=null;
-      let capped=false;
-
-      for(let page=0;page<maxPages;page++){
-        const params={limit:1000};
-        if(before) params.before=before;
-
-        const batch=await rpc("getSignaturesForAddress",[address,params]).catch(()=>[]);
-        if(!Array.isArray(batch)||!batch.length) break;
-
-        all.push(...batch);
-
-        if(batch.length<1000) break;
-
-        before=batch[batch.length-1]?.signature;
-        if(!before) break;
-
-        if(page===maxPages-1) capped=true;
-      }
-
-      return {signatures:all,capped};
-    }
-
-    async function getHistoricalBlockTime(signature){
-      if(signature?.blockTime!=null) return Number(signature.blockTime);
-      if(signature?.slot!=null){
-        try{
-          const result=await rpc("getBlockTime",[signature.slot],8000);
-          if(typeof result==="number") return result;
-        }catch{}
-      }
-      if(signature?.signature){
-        try{
-          const tx=await rpc("getTransaction",[signature.signature,{encoding:"jsonParsed",maxSupportedTransactionVersion:0,commitment:"confirmed"}],10000);
-          if(tx?.blockTime!=null) return Number(tx.blockTime);
-        }catch{}
-      }
-      return null;
-    }
-
-    async function getTokenMarket(mint){
-      const fallback={
-        "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB":{name:"Tether USD",symbol:"USDT"},
-        "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v":{name:"USD Coin",symbol:"USDC"}
+    async function fetchTokensMarketMap(mints) {
+      const map = new Map();
+      const fallback = {
+        "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB": { name: "Tether USD", symbol: "USDT" },
+        "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": { name: "USD Coin", symbol: "USDC" },
+        "So11111111111111111111111111111111111111112": { name: "Wrapped SOL", symbol: "SOL" }
       };
 
-      const json=await getJson("https://api.dexscreener.com/latest/dex/tokens/"+mint);
-      const pairs=(json?.pairs||[])
-        .filter(p=>p.chainId==="solana")
-        .sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0));
+      if (!mints.length) return map;
 
-      const pair=pairs[0]||null;
+      const chunks = [];
+      for (let i = 0; i < mints.length; i += 30) {
+        chunks.push(mints.slice(i, i + 30));
+      }
 
-      return {
-        mint,
-        name:pair?.baseToken?.name||fallback[mint]?.name||"Unknown token",
-        symbol:pair?.baseToken?.symbol||fallback[mint]?.symbol||shortAddr(mint),
-        imageUrl:pair?.info?.imageUrl||null,
-        priceUsd:pair?.priceUsd?Number(pair.priceUsd):null,
-        liquidityUsd:pair?.liquidity?.usd??null
-      };
+      await Promise.all(
+        chunks.map(async chunk => {
+          const url = "https://api.dexscreener.com/tokens/v1/solana/" + chunk.join(",");
+          const data = await getJson(url, 6000);
+          if (Array.isArray(data)) {
+            for (const pair of data) {
+              const mint = pair.baseToken?.address;
+              if (mint && !map.has(mint)) {
+                map.set(mint, {
+                  name: pair.baseToken?.name,
+                  symbol: pair.baseToken?.symbol,
+                  imageUrl: pair.info?.imageUrl || null,
+                  priceUsd: pair.priceUsd ? Number(pair.priceUsd) : null
+                });
+              }
+            }
+          }
+        })
+      );
+
+      for (const m of mints) {
+        if (!map.has(m)) {
+          map.set(m, {
+            name: fallback[m]?.name || "Unknown token",
+            symbol: fallback[m]?.symbol || shortAddr(m),
+            imageUrl: null,
+            priceUsd: null
+          });
+        }
+      }
+      return map;
     }
 
-    async function scanWallet(address){
-      const [bal,legacy,t22,history]=await Promise.all([
-        rpc("getBalance",[address,{commitment:"confirmed"}]).catch(()=>({value:0})),
-        rpc("getParsedTokenAccountsByOwner",[address,{programId:TOKEN_PROGRAM},{encoding:"jsonParsed"}]).catch(()=>({value:[]})),
-        rpc("getParsedTokenAccountsByOwner",[address,{programId:TOKEN_2022},{encoding:"jsonParsed"}]).catch(()=>({value:[]})),
-        getWalletHistory(address)
+    async function scanWallet(address) {
+      const [bal, legacy, t22, sigs] = await Promise.all([
+        rpc("getBalance", [address, { commitment: "confirmed" }]).catch(() => ({ value: 0 })),
+        rpc("getTokenAccountsByOwner", [address, { programId: TOKEN_PROGRAM }, { encoding: "jsonParsed", commitment: "confirmed" }]).catch(() => ({ value: [] })),
+        rpc("getTokenAccountsByOwner", [address, { programId: TOKEN_2022 }, { encoding: "jsonParsed", commitment: "confirmed" }]).catch(() => ({ value: [] })),
+        rpc("getSignaturesForAddress", [address, { limit: 10, commitment: "confirmed" }]).catch(() => [])
       ]);
 
-      const sigs=history.signatures;
-      const capped=history.capped;
+      const solLamports = BigInt(bal?.value || 0);
+      const solBalance = Number(solLamports) / 1e9;
 
-      // Aggregate every non-zero token account by mint.
-      const tokenMap=new Map();
+      const tokenMap = new Map();
 
-      for(const acc of [...(legacy?.value||[]),...(t22?.value||[])]){
-        const info=acc.account?.data?.parsed?.info;
-        const amount=info?.tokenAmount;
+      if (solLamports > 0n) {
+        tokenMap.set(WSOL_MINT, {
+          mint: WSOL_MINT,
+          rawAmount: solLamports.toString(),
+          decimals: 9,
+          uiAmount: solBalance,
+          uiAmountString: solBalance.toString(),
+          isNativeSol: true
+        });
+      }
 
-        if(!info?.mint||!amount||amount.amount==="0") continue;
+      for (const acc of [...(legacy?.value || []), ...(t22?.value || [])]) {
+        const info = acc.account?.data?.parsed?.info;
+        const amount = info?.tokenAmount;
+        if (!info?.mint || !amount || amount.amount === "0") continue;
 
-        const existing=tokenMap.get(info.mint);
-
-        if(existing){
-          try{
-            existing.rawAmount=(BigInt(existing.rawAmount)+BigInt(amount.amount)).toString();
-          }catch{}
-        }else{
-          tokenMap.set(info.mint,{
-            mint:info.mint,
-            rawAmount:String(amount.amount),
-            decimals:Number(amount.decimals||0)
+        const existing = tokenMap.get(info.mint);
+        if (existing) {
+          try {
+            const combined = BigInt(existing.rawAmount) + BigInt(amount.amount);
+            existing.rawAmount = combined.toString();
+            existing.uiAmount = Number(combined) / (10 ** existing.decimals);
+            existing.uiAmountString = existing.uiAmount.toString();
+          } catch {}
+        } else {
+          tokenMap.set(info.mint, {
+            mint: info.mint,
+            rawAmount: String(amount.amount),
+            decimals: Number(amount.decimals || 0),
+            uiAmount: amount.uiAmount ?? (Number(amount.amount) / (10 ** Number(amount.decimals || 0))),
+            uiAmountString: amount.uiAmountString || null,
+            isNativeSol: false
           });
         }
       }
 
-      const rawTokens=[...tokenMap.values()];
-      const nftLike=rawTokens.filter(t=>t.decimals===0).length;
-      const distinctMints=rawTokens.length;
+      const rawTokens = [...tokenMap.values()];
+      const mintAddresses = rawTokens.map(t => t.mint);
+      const marketDataMap = await fetchTokensMarketMap(mintAddresses);
 
-      // Resolve oldest and newest activity, including blockTime fallback from slot.
-      let firstTxAt=null;
-      let lastTxAt=null;
+      let totalPortfolioUsd = 0;
+      const holdings = rawTokens.map(t => {
+        const meta = marketDataMap.get(t.mint) || {};
+        const name = t.isNativeSol ? "Solana" : (meta.name || "Unknown token");
+        const symbol = t.isNativeSol ? "SOL" : (meta.symbol || shortAddr(t.mint));
+        const imageUrl = t.isNativeSol ? "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" : (meta.imageUrl || null);
+        const priceUsd = meta.priceUsd ?? null;
+        const valueUsd = (priceUsd != null && Number.isFinite(priceUsd)) ? t.uiAmount * priceUsd : null;
 
-      if(sigs.length){
-        lastTxAt=await getHistoricalBlockTime(sigs[0]);
-        firstTxAt=await getHistoricalBlockTime(sigs[sigs.length-1]);
-      }
-
-      const now=Math.floor(Date.now()/1000);
-      const ageDays=firstTxAt!=null
-        ?Math.max(0,Math.floor((now-firstTxAt)/86400))
-        :null;
-
-      const recentTransactions=sigs.slice(0,12).map(s=>({
-        signature:s.signature,
-        slot:s.slot,
-        blockTime:s.blockTime!=null?Number(s.blockTime):null,
-        status:s.err?"Failed":"Confirmed"
-      }));
-
-      // Fetch metadata for the visible holdings.
-      const visibleTokens=rawTokens.slice(0,20);
-      const tokenMetadata=await Promise.all(
-        visibleTokens.map(t=>getTokenMarket(t.mint).catch(()=>({
-          mint:t.mint,
-          name:"Unknown token",
-          symbol:shortAddr(t.mint),
-          imageUrl:null,
-          priceUsd:null,
-          liquidityUsd:null
-        })))
-      );
-
-      const tokenMetaMap=new Map(tokenMetadata.map(t=>[t.mint,t]));
-
-      const holdings=visibleTokens.map(t=>{
-        const meta=tokenMetaMap.get(t.mint)||{};
-        let amount=0;
-
-        try{
-          amount=Number(t.rawAmount)/10**t.decimals;
-        }catch{}
+        if (valueUsd != null) totalPortfolioUsd += valueUsd;
 
         return {
           ...t,
-          amount,
-          name:meta.name||"Unknown token",
-          symbol:meta.symbol||shortAddr(t.mint),
-          imageUrl:meta.imageUrl||null,
-          priceUsd:meta.priceUsd??null,
-          valueUsd:meta.priceUsd!=null&&Number.isFinite(meta.priceUsd)
-            ?amount*meta.priceUsd
-            :null
+          name,
+          symbol,
+          imageUrl,
+          priceUsd,
+          valueUsd
         };
       });
 
-      const sample=sigs.length<=8
-        ?sigs.map(s=>s.signature)
-        :[...new Set([
-          ...sigs.slice(0,4),
-          ...sigs.slice(-4)
-        ].map(s=>s.signature))];
+      holdings.sort((a, b) => (b.valueUsd || 0) - (a.valueUsd || 0) || (b.uiAmount || 0) - (a.uiAmount || 0));
 
-      let parsed=[];
-      try{
-        if(sample.length)
-          parsed=await rpc(
-            "getParsedTransactions",
-            [sample,{maxSupportedTransactionVersion:0,commitment:"confirmed"}],
-            10000
-          )||[];
-      }catch{parsed=[]}
+      const recentTransactions = sigs.slice(0, 8).map(s => ({
+        signature: s.signature,
+        slot: s.slot,
+        blockTime: s.blockTime != null ? Number(s.blockTime) : null,
+        status: s.err ? "Failed" : "Confirmed"
+      }));
 
-      const ids=new Set();
-
-      for(const tx of parsed){
-        if(!tx)continue;
-
-        for(const ix of tx.transaction?.message?.instructions||[])
-          if(ix.programId) ids.add(String(ix.programId));
-
-        for(const group of tx.meta?.innerInstructions||[])
-          for(const ix of group.instructions||[])
-            if(ix.programId) ids.add(String(ix.programId));
-      }
-
-      const programsTouched=[];
-      const seen=new Set();
-
-      for(const id of ids){
-        const hit=PROGRAMS[id];
-        if(!hit||seen.has(hit.name))continue;
-
-        seen.add(hit.name);
-        programsTouched.push(hit);
-      }
-
-      const defiHits=programsTouched.filter(p=>p.kind==="defi").length;
-      const buildHits=programsTouched.filter(p=>p.kind==="build").length;
-
-      const tags=[];
-
-      if(firstTxAt&&firstTxAt<OG_CUTOFF) tags.push("OG");
-      if((ageDays||0)>=180&&sigs.length>=8) tags.push("Long-Term Holder");
-      if(nftLike>=3) tags.push("Collector");
-      if(defiHits>=2) tags.push("DeFi Explorer");
-      if(buildHits>=1) tags.push("Builder");
-      if(ageDays!=null&&ageDays<90) tags.push("New Chapter");
-      if(!tags.length&&sigs.length>=20) tags.push("Active");
-      if(!tags.length) tags.push("New Chapter");
-
-      const order=["OG","Builder","Long-Term Holder","Collector","DeFi Explorer","Active","New Chapter"];
-      const dna=order.filter(t=>tags.includes(t)).slice(0,2);
-
-      const solBalance=(bal?.value||0)/1e9;
-
-      const chapters=[];
-
-      if(firstTxAt)
-        chapters.push({title:"First on-chain breath",detail:formatWhen(firstTxAt)});
-
-      if(solBalance>0)
-        chapters.push({title:"Still holding SOL",detail:solBalance.toFixed(solBalance>=10?2:4)+" SOL"});
-
-      if(nftLike>=1)
-        chapters.push({title:"Collected pieces",detail:nftLike+" NFT-like still held"});
-
-      if(distinctMints>=1)
-        chapters.push({title:"Tokens that stayed",detail:distinctMints+" tokens with a balance"});
-
-      if(lastTxAt&&firstTxAt&&lastTxAt!==firstTxAt)
-        chapters.push({title:"Still moving",detail:"Last activity "+formatWhen(lastTxAt)});
+      const tags = [];
+      if (holdings.length >= 8) tags.push("Diversified");
+      if (totalPortfolioUsd >= 5000) tags.push("Whale");
+      if (solBalance >= 1) tags.push("Active Trader");
+      if (!tags.length) tags.push("Wallet Active");
 
       return {
         address,
-        short:shortAddr(address),
-        firstTxAt,
-        lastTxAt,
-        ageDays,
-        signatureCount:sigs.length,
-        signatureCapped:capped,
-        recentTransactions,
+        short: shortAddr(address),
         solBalance,
-        nftLike,
-        distinctMints,
+        totalPortfolioUsd,
+        tokenCount: holdings.length,
         holdings,
-        programsTouched,
-        dna,
-        chapters:chapters.slice(0,8)
+        recentTransactions,
+        tags
       };
     }
 
@@ -925,113 +791,95 @@
     function upsertWatch(item){saveWatch([item,...loadWatch().filter(w=>w.address!==item.address)]);renderWatch()}
     function dropWatch(address){saveWatch(loadWatch().filter(w=>w.address!==address));renderWatch()}
     function renderWatch(){
-      const items=loadWatch();
+      const items = loadWatch();
       function block(filter,mount){
-        const rows=filter?items.filter(i=>i.kind===filter):items;
+        const rows = filter ? items.filter(i=>i.kind===filter) : items;
         if(!rows.length){mount.innerHTML="";return}
-        mount.innerHTML='<section class="card" style="margin-top:32px"><h2 style="font-size:28px">Watchlist</h2><ul class="watch" style="list-style:none;padding:0;margin:8px 0 0">'+rows.map(item=>'<li><div><b>'+esc(item.label)+'</b> <span class="muted">'+esc(item.kind)+'</span></div><div class="row"><button class="btn ghost" data-rescan="'+esc(item.kind)+':'+esc(item.address)+'">Rescan</button><button class="btn ghost" data-drop="'+esc(item.address)+'">Drop</button></div></li>').join("")+"</ul></section>";
+        mount.innerHTML = '<section class="card" style="margin-top:32px"><h2 style="font-size:28px">Watchlist</h2><ul class="watch" style="list-style:none;padding:0;margin:8px 0 0">'+rows.map(item=>'<li><div><b>'+esc(item.label)+'</b> <span class="muted">'+esc(item.kind)+'</span></div><div class="row"><button class="btn ghost" data-rescan="'+esc(item.kind)+':'+esc(item.address)+'">Rescan</button><button class="btn ghost" data-drop="'+esc(item.address)+'">Drop</button></div></li>').join("")+"</ul></section>";
       }
       block(null,document.getElementById("hub-watch"));
       block("token",document.getElementById("token-watch"));
       block("wallet",document.getElementById("wallet-watch"));
     }
+
     function show(name){
+      const target = ["hub","token","wallet"].includes(name) ? name : "hub";
       document.getElementById("splash").classList.remove("on");
       document.getElementById("app").classList.add("on");
       ["hub","token","wallet"].forEach(id=>{
-        document.getElementById(id).hidden=id!==name;
-        document.getElementById("nav-"+id).classList.toggle("on",id===name);
+        document.getElementById(id).hidden = id!==target;
+        document.getElementById("nav-"+id).classList.toggle("on",id===target);
       });
-      location.hash=name;
+      location.hash = target;
     }
-    document.getElementById("enter").onclick=()=>{sessionStorage.setItem("lived-guard-entered","1");show("hub")};
+
+    document.getElementById("enter").onclick = ()=>{sessionStorage.setItem("lived-guard-entered","1");show("hub")};
     document.querySelectorAll("[data-go]").forEach(el=>el.addEventListener("click",e=>{e.preventDefault();show(el.getAttribute("data-go"))}));
     document.body.addEventListener("click",e=>{
-      const drop=e.target.closest("[data-drop]"); if(drop) dropWatch(drop.getAttribute("data-drop"));
-      const rescan=e.target.closest("[data-rescan]");
-      if(rescan){const [kind,address]=rescan.getAttribute("data-rescan").split(":");if(kind==="token"){document.getElementById("token-input").value=address;show("token");runToken(address)}else{document.getElementById("wallet-input").value=address;show("wallet");runWallet(address)}}
+      const drop = e.target.closest("[data-drop]"); if(drop) dropWatch(drop.getAttribute("data-drop"));
+      const rescan = e.target.closest("[data-rescan]");
+      if(rescan){
+        const [kind,address] = rescan.getAttribute("data-rescan").split(":");
+        if(kind==="token"){
+          const input = document.getElementById("token-input");
+          input.value = address;
+          input.dispatchEvent(new Event("input"));
+          show("token");
+          runToken(address);
+        }else{
+          const input = document.getElementById("wallet-input");
+          input.value = address;
+          input.dispatchEvent(new Event("input"));
+          show("wallet");
+          runWallet(address);
+        }
+      }
     });
+
     function stat(label,value){return '<div class="stat"><b>'+esc(value)+'</b><span>'+esc(label)+'</span></div>'}
 
     function tokenSparkline(pair){
       if(!pair?.pairAddress){
         return '<div class="token-chart" style="display:grid;place-items:center"><span class="muted">Live chart unavailable for this market.</span></div>';
       }
-
-      const src="https://dexscreener.com/solana/"+encodeURIComponent(pair.pairAddress)+"?embed=1&theme=dark&trades=0&info=0";
-
-      return '<div class="token-chart">'+
-        '<iframe src="'+src+'" title="Live market chart" loading="lazy" style="width:100%;height:100%;border:0;background:#090909"></iframe>'+
-      '</div>';
+      const src = "https://dexscreener.com/solana/"+encodeURIComponent(pair.pairAddress)+"?embed=1&theme=dark&trades=0&info=0";
+      return '<div class="token-chart"><iframe src="'+src+'" title="Live market chart" loading="lazy" style="width:100%;height:100%;border:0;background:#090909"></iframe></div>';
     }
 
     async function runToken(address){
-      const out=document.getElementById("token-out");
-      const raw=(address||"").trim();
-
+      const out = document.getElementById("token-out");
+      const raw = (address||"").trim();
       if(!isPubkey(raw)){
-        out.innerHTML='<div class="err">Paste a Solana token mint.</div>';
+        out.innerHTML = '<div class="err">Paste a Solana token mint.</div>';
         return;
       }
-
-      out.innerHTML='<div class="busy">Opening the ledger…</div>';
-
+      out.innerHTML = '<div class="busy">Opening the ledger…</div>';
       try{
-        const r=await scanToken(raw);
-        const copy=verdictCopy(r.verdict);
+        const r = await scanToken(raw);
+        const copy = verdictCopy(r.verdict);
+        const changeClass = r.priceChange24h==null ? "" : (r.priceChange24h>=0 ? "up" : "down");
+        const changeText = r.priceChange24h==null ? "24h change unavailable" : (r.priceChange24h>=0 ? "+" : "")+r.priceChange24h.toFixed(2)+"%";
 
-        const changeClass=r.priceChange24h==null
-          ?""
-          :r.priceChange24h>=0
-            ?"up"
-            :"down";
+        const poolRecord = r.liquidityPool
+          ? '<div class="holder-record lp"><div class="record-title">Liquidity pool</div><div class="muted">Separate from token holders · '+esc(r.liquidityPool.label||"AMM / LP")+'</div><div class="record-pct">'+(r.liquidityPool.pct!=null?r.liquidityPool.pct.toFixed(1)+"%":"—")+'</div><div class="stamp">'+esc(r.liquidityPool.address?shortAddr(r.liquidityPool.address):"Pool address unavailable")+'</div></div>'
+          : '<div class="holder-record"><div class="record-title">Liquidity pool</div><div class="muted">No pool holder record returned by the scanner.</div></div>';
 
-        const changeText=r.priceChange24h==null
-          ?"24h change unavailable"
-          :(r.priceChange24h>=0?"+":"")+r.priceChange24h.toFixed(2)+"%";
+        const holderRecord = r.topHolder
+          ? '<div class="holder-record"><div class="record-title">Top holder</div><div class="muted">Largest non-LP holder</div><div class="record-pct">'+(r.topHolder.pct!=null?r.topHolder.pct.toFixed(1)+"%":"—")+'</div><div class="stamp">'+esc(r.topHolder.address?shortAddr(r.topHolder.address):"Address unavailable")+'</div></div>'
+          : '<div class="holder-record"><div class="record-title">Top holder</div><div class="muted">No non-LP holder record returned.</div></div>';
 
-        const poolRecord=r.liquidityPool
-          ?'<div class="holder-record lp">'+
-              '<div class="record-title">Liquidity pool</div>'+
-              '<div class="muted">Separate from token holders · '+esc(r.liquidityPool.label||"AMM / LP")+'</div>'+
-              '<div class="record-pct">'+
-                (r.liquidityPool.pct!=null?r.liquidityPool.pct.toFixed(1)+"%":"—")+
-              '</div>'+
-              '<div class="stamp">'+
-                esc(r.liquidityPool.address?shortAddr(r.liquidityPool.address):"Pool address unavailable")+
-              '</div>'+
-            '</div>'
-          :'<div class="holder-record"><div class="record-title">Liquidity pool</div><div class="muted">No pool holder record returned by the scanner.</div></div>';
-
-        const holderRecord=r.topHolder
-          ?'<div class="holder-record">'+
-              '<div class="record-title">Top holder</div>'+
-              '<div class="muted">Largest non-LP holder</div>'+
-              '<div class="record-pct">'+
-                (r.topHolder.pct!=null?r.topHolder.pct.toFixed(1)+"%":"—")+
-              '</div>'+
-              '<div class="stamp">'+
-                esc(r.topHolder.address?shortAddr(r.topHolder.address):"Address unavailable")+
-              '</div>'+
-            '</div>'
-          :'<div class="holder-record"><div class="record-title">Top holder</div><div class="muted">No non-LP holder record returned.</div></div>';
-
-        const similar=r.pairs.slice(1,4).map(p=>{
-          const n=p.baseToken?.symbol||p.baseToken?.name||"Pair";
+        const similar = r.pairs.slice(1,4).map(p=>{
+          const n = p.baseToken?.symbol || p.baseToken?.name || "Pair";
           return '<span class="similar-pill">'+esc(n)+" · "+esc(p.dexId||"DEX")+'</span>';
         }).join("");
 
-        out.innerHTML=
+        out.innerHTML =
           '<section class="token-hero">'+
             '<div class="token-head">'+
               '<div class="token-id">'+
-                (r.imageUrl
-                  ?'<img class="token-logo" src="'+esc(r.imageUrl)+'" alt="">'
-                  :'<div class="token-logo icon">'+esc((r.symbol||"TK").slice(0,2))+'</div>')+
+                (r.imageUrl ? '<img class="token-logo" src="'+esc(r.imageUrl)+'" alt="">' : '<div class="token-logo icon">'+esc((r.symbol||"TK").slice(0,2))+'</div>')+
                 '<div style="min-width:0">'+
-                  '<h2 style="font-size:34px;margin:0;overflow:hidden;text-overflow:ellipsis">'+
-                    esc(r.name||"Unknown token")+
-                  '</h2>'+
+                  '<h2 style="font-size:34px;margin:0;overflow:hidden;text-overflow:ellipsis">'+esc(r.name||"Unknown token")+'</h2>'+
                   '<div class="stamp">'+esc(r.symbol||"UNKNOWN")+" · "+esc(r.short)+'</div>'+
                 '</div>'+
               '</div>'+
@@ -1040,28 +888,20 @@
                 '<div class="token-change '+changeClass+'">'+esc(changeText)+'</div>'+
               '</div>'+
             '</div>'+
-
             tokenSparkline(r.pair)+
-
             '<div class="token-metrics">'+
               '<div class="token-metric"><b>'+formatUsd(r.marketCap)+'</b><span>Market cap</span></div>'+
               '<div class="token-metric"><b>'+formatUsd(r.volume24h)+'</b><span>Volume 24h</span></div>'+
               '<div class="token-metric"><b>'+formatUsd(r.liquidityUsd)+'</b><span>Liquidity</span></div>'+
               '<div class="token-metric"><b>'+esc(r.supplyUi||"—")+'</b><span>Supply</span></div>'+
             '</div>'+
-
-            (similar
-              ?'<div style="margin-top:14px"><span class="stamp">Similar pairs</span><div class="similar-row">'+similar+'</div></div>'
-              :"")+
-
+            (similar ? '<div style="margin-top:14px"><span class="stamp">Similar pairs</span><div class="similar-row">'+similar+'</div></div>' : "")+
             '<div class="row">'+
               '<a class="btn ghost" href="https://jup.ag/swap/SOL-'+encodeURIComponent(r.address)+'" target="_blank" rel="noopener">View on Jupiter ↗</a>'+
               '<button class="btn" id="copy-mint">Copy mint</button>'+
             '</div>'+
-
             '<div class="stamp" style="margin-top:8px">Always verify the contract address before buying.</div>'+
           '</section>'+
-
           '<section class="card" style="margin-top:16px">'+
             '<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center">'+
               '<h2 style="font-size:28px">Holder records</h2>'+
@@ -1070,207 +910,132 @@
             '<div class="holder-grid">'+poolRecord+holderRecord+'</div>'+
             '<p class="muted" style="margin-bottom:0">Liquidity pools and token holders are separate entities. The liquidity pool is never used as the top-holder concentration record.</p>'+
           '</section>'+
-
           '<section class="card" style="margin-top:16px">'+
             '<h2 style="font-size:22px">Findings</h2>'+
             r.findings.map(f=>
-              '<div class="find">'+
-                '<div class="lvl">'+(f.level==="ok"?"Clear":f.level==="high"?"High":"Caution")+'</div>'+
-                '<b>'+esc(f.title)+'</b>'+
-                '<div class="muted">'+esc(f.detail)+'</div>'+
-              '</div>'
+              '<div class="find"><div class="lvl">'+(f.level==="ok"?"Clear":f.level==="high"?"High":"Caution")+'</div><b>'+esc(f.title)+'</b><div class="muted">'+esc(f.detail)+'</div></div>'
             ).join("")+
             '<div class="row"><button class="btn seal" id="watch-token">Watch token</button></div>'+
           '</section>';
 
-        document.getElementById("copy-mint").onclick=()=>{
-          navigator.clipboard.writeText(r.address);
+        document.getElementById("copy-mint").onclick = ()=>navigator.clipboard.writeText(r.address);
+        document.getElementById("watch-token").onclick = ()=>{
+          upsertWatch({address:r.address,kind:"token",label:r.symbol||r.short,verdict:r.verdict});
+          document.getElementById("watch-token").textContent = "Watching";
         };
-
-        document.getElementById("watch-token").onclick=()=>{
-          upsertWatch({
-            address:r.address,
-            kind:"token",
-            label:r.symbol||r.short,
-            verdict:r.verdict
-          });
-          document.getElementById("watch-token").textContent="Watching";
-        };
-
       }catch(err){
-        out.innerHTML='<div class="err">'+esc(err.message||"Scan failed.")+'</div>';
+        out.innerHTML = '<div class="err">'+esc(err.message||"Scan failed.")+'</div>';
       }
     }
 
     function roundRect(ctx,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath()}
     async function renderLivedCard(p){
-      const w=1080,h=1350,canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;const ctx=canvas.getContext("2d");
-      ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);
-
-      try{
-        const logo=await new Promise((resolve,reject)=>{
-          const img=new Image();
-          img.onload=()=>resolve(img);
-          img.onerror=reject;
-          img.src=SEAL;
-        });
-        ctx.save();
-        ctx.globalAlpha=0.12;
-        ctx.drawImage(logo,90,120,w-180,w-180);
-        ctx.restore();
-      }catch{}
-
-      ctx.strokeStyle="#ff6a00";ctx.lineWidth=10;roundRect(ctx,48,48,w-96,h-96,36);ctx.stroke();
-      ctx.fillStyle="#ff6a00";ctx.textAlign="center";ctx.font="700 118px Bebas Neue, Impact, sans-serif";ctx.fillText("LIVED CARD",w/2,520);
-      ctx.fillStyle="#f6f1e8";ctx.font="22px Special Elite, Georgia, serif";ctx.fillText(p.short.toUpperCase(),w/2,570);
-      ctx.fillStyle="#c4162a";roundRect(ctx,180,620,w-360,64,32);ctx.fill();
-      ctx.fillStyle="#fff";ctx.font="700 28px Bebas Neue, Impact, sans-serif";ctx.fillText((p.dna.join("  ·  ")||"NEW CHAPTER").toUpperCase(),w/2,662);
-      const rows=[["AGE",formatAge(p.ageDays)],["CHAPTERS",String(p.chapters.length)],["TX",String(p.signatureCount)+(p.signatureCapped?"+":"")]];
-      let y=780;for(const [k,v] of rows){ctx.textAlign="left";ctx.fillStyle="#f6f1e8";ctx.font="22px Special Elite, Georgia, serif";ctx.fillText(k,220,y);ctx.textAlign="right";ctx.fillStyle="#ff6a00";ctx.font="700 28px Bebas Neue, Impact, sans-serif";ctx.fillText(v,w-220,y);y+=72}
-      ctx.textAlign="center";ctx.fillStyle="#9c9388";ctx.font="20px Special Elite, Georgia, serif";ctx.fillText("YOUR WALLET HAS A HISTORY.",w/2,1180);
+      await document.fonts.ready;
+      const w = 1080, h = 1350, canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#050505"; ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle = "#ff6a00"; ctx.lineWidth = 10; roundRect(ctx,48,48,w-96,h-96,36); ctx.stroke();
+      ctx.fillStyle = "#ff6a00"; ctx.textAlign = "center"; ctx.font = "700 118px Bebas Neue, Impact, sans-serif"; ctx.fillText("LIVED CARD",w/2,520);
+      ctx.fillStyle = "#f6f1e8"; ctx.font = "22px Special Elite, Georgia, serif"; ctx.fillText(p.short.toUpperCase(),w/2,570);
+      ctx.fillStyle = "#c4162a"; roundRect(ctx,180,620,w-360,64,32); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = "700 28px Bebas Neue, Impact, sans-serif"; ctx.fillText((p.tags.join("  ·  ")||"WALLET ACTIVE").toUpperCase(),w/2,662);
+      const rows = [
+        ["PORTFOLIO", formatUsd(p.totalPortfolioUsd)],
+        ["HOLDINGS", p.tokenCount + " TOKENS"],
+        ["SOL", p.solBalance.toFixed(3) + " SOL"]
+      ];
+      let y = 780;
+      for(const [k,v] of rows){
+        ctx.textAlign = "left"; ctx.fillStyle = "#f6f1e8"; ctx.font = "22px Special Elite, Georgia, serif"; ctx.fillText(k,220,y);
+        ctx.textAlign = "right"; ctx.fillStyle = "#ff6a00"; ctx.font = "700 28px Bebas Neue, Impact, sans-serif"; ctx.fillText(v,w-220,y);
+        y += 72;
+      }
+      ctx.textAlign = "center"; ctx.fillStyle = "#9c9388"; ctx.font = "20px Special Elite, Georgia, serif"; ctx.fillText("YOUR WALLET HAS A HISTORY.",w/2,1180);
       return canvas.toDataURL("image/png");
     }
 
     async function runWallet(address){
-      const out=document.getElementById("wallet-out");
-      const raw=(address||"").trim();
-
+      const out = document.getElementById("wallet-out");
+      const raw = (address||"").trim();
       if(!isPubkey(raw)){
-        out.innerHTML='<div class="err">Paste a Solana wallet address.</div>';
+        out.innerHTML = '<div class="err">Paste a Solana wallet address.</div>';
         return;
       }
-
-      out.innerHTML='<div class="busy">Opening the ledger…</div>';
-
+      out.innerHTML = '<div class="busy">Scanning wallet tokens on-chain…</div>';
       try{
-        const r=await scanWallet(raw);
-        const src=await renderLivedCard(r);
+        const r = await scanWallet(raw);
+        const src = await renderLivedCard(r);
+        const share = ["LIVED CARD — "+r.short,"Portfolio: "+formatUsd(r.totalPortfolioUsd),"Holdings: "+r.tokenCount+" tokens","SOL: "+r.solBalance.toFixed(3),"","Verified on LIVED Guard."].join("\n");
 
-        const share=[
-          "LIVED CARD — "+r.short,
-          "DNA: "+(r.dna.join(" / ")||"New Chapter"),
-          "Age: "+formatAge(r.ageDays),
-          "Tx: "+r.signatureCount,
-          "",
-          "Your wallet has a history. What will your legacy be?"
-        ].join("\n");
-
-        const holdings=r.holdings.map(t=>
+        const holdingsHtml = r.holdings.map(t=>
           '<div class="holding">'+
             '<div class="holding-left">'+
-              (t.imageUrl
-                ?'<img class="holding-logo" src="'+esc(t.imageUrl)+'" alt="">'
-                :'<div class="holding-logo"></div>')+
-              '<div class="holding-name">'+
-                '<b>'+esc(t.name)+'</b>'+
-                '<span>'+esc(t.symbol)+" · "+esc(shortAddr(t.mint))+'</span>'+
-              '</div>'+
+              (t.imageUrl ? '<img class="holding-logo" src="'+esc(t.imageUrl)+'" alt="">' : '<div class="holding-logo icon" style="font-size:13px">'+esc(t.symbol.slice(0,2))+'</div>')+
+              '<div class="holding-name"><b>'+esc(t.name)+'</b><span>'+esc(t.symbol)+" · "+esc(shortAddr(t.mint))+'</span></div>'+
             '</div>'+
-            '<div class="holding-balance">'+
-              '<b>'+esc(formatSupply(t.rawAmount,t.decimals))+'</b>'+
-              '<span>'+formatUsd(t.valueUsd)+'</span>'+
-            '</div>'+
+            '<div class="holding-balance"><b>'+esc(formatTokenAmount(t.rawAmount, t.decimals, t.uiAmountString))+' '+esc(t.symbol)+'</b><span>'+(t.valueUsd != null ? formatUsd(t.valueUsd) : (t.priceUsd ? formatUsd(t.priceUsd) + "/ea" : "Price unlisted"))+'</span></div>'+
           '</div>'
         ).join("");
 
-        const ageText=r.ageDays==null
-          ?"Unknown"
-          :formatAge(r.ageDays);
-
-        const ageDetail=r.firstTxAt
-          ?formatWhen(r.firstTxAt)
-          :"No timestamp returned by RPC";
-
-        out.innerHTML=
+        out.innerHTML =
           '<div class="card-grid">'+
-
             '<section class="card">'+
               '<p class="stamp brand">Wallet watch</p>'+
               '<h2 style="font-size:40px">Lived Card</h2>'+
               '<p class="stamp">'+esc(r.short)+'</p>'+
-              '<div>'+r.dna.map(t=>'<span class="chip">'+esc(t)+'</span>').join("")+'</div>'+
-
+              '<div>'+r.tags.map(t=>'<span class="chip">'+esc(t)+'</span>').join("")+'</div>'+
               '<div class="stats">'+
-                stat("Wallet age",ageText)+
-                stat("Signatures",String(r.signatureCount)+(r.signatureCapped?"+":""))+
-                stat("Chapters",String(r.chapters.length))+
-                stat("SOL",r.solBalance.toFixed(3))+
+                stat("Portfolio", formatUsd(r.totalPortfolioUsd))+
+                stat("Tokens", String(r.tokenCount))+
+                stat("SOL", r.solBalance.toFixed(3))+
+                stat("Status", "Confirmed")+
               '</div>'+
-
-              '<div class="find">'+
-                '<b>Earliest activity</b>'+
-                '<div class="muted">'+esc(ageDetail)+'</div>'+
-              '</div>'+
-
-              '<h2 style="font-size:22px;margin-top:20px">Token holdings</h2>'+
-              (holdings
-                ?'<div class="holding-list">'+holdings+'</div>'
-                :'<div class="busy">No non-zero SPL token balances found.</div>')+
-
-              '<h2 style="font-size:22px;margin-top:20px">Transaction history</h2>'+              (r.recentTransactions.length
-                ?'<div class="tx-list">'+r.recentTransactions.map(tx=>
-                  '<div class="tx-row">'+                    '<div><b>'+esc(tx.status)+'</b><div class="muted">'+esc(tx.blockTime!=null?formatWhen(tx.blockTime):"Timestamp unavailable")+'</div></div>'+                    '<div class="stamp">'+esc(shortAddr(tx.signature))+'</div>'+                  '</div>'                ).join("")+'</div>'                :'<div class="busy">No transaction history returned.</div>')+              '<h2 style="font-size:22px;margin-top:20px">Chapters</h2>'+
-              r.chapters.map(c=>
-                '<div class="find"><b>'+esc(c.title)+'</b><div class="muted">'+esc(c.detail)+'</div></div>'
-              ).join("")+
-
-              '<div class="row">'+
+              '<h2 style="font-size:22px;margin-top:20px">Token holdings ('+r.tokenCount+')</h2>'+
+              (holdingsHtml ? '<div class="holding-list">'+holdingsHtml+'</div>' : '<div class="busy">No non-zero SPL token balances found.</div>')+
+              '<h2 style="font-size:22px;margin-top:20px">Recent transactions</h2>'+
+              (r.recentTransactions.length ? '<div class="tx-list">'+r.recentTransactions.map(tx=>
+                '<div class="tx-row"><div><b>'+esc(tx.status)+'</b><div class="muted">'+esc(tx.blockTime!=null?formatWhen(tx.blockTime):"Recent confirmation")+'</div></div><div class="stamp">'+esc(shortAddr(tx.signature))+'</div></div>'
+              ).join("")+'</div>' : '<div class="busy">No recent transactions recorded.</div>')+
+              '<div class="row" style="margin-top:20px">'+
                 '<a class="btn" download="lived-card.png" href="'+src+'">Download card</a>'+
                 '<button class="btn ghost" id="share-x">Share on X</button>'+
                 '<button class="btn seal" id="watch-wallet">Watch wallet</button>'+
               '</div>'+
             '</section>'+
-
-            '<aside class="card">'+
-              '<h2 style="font-size:22px">The seal</h2>'+
-              '<img class="card-preview" alt="Lived Card" src="'+src+'">'+
-            '</aside>'+
-
+            '<aside class="card"><h2 style="font-size:22px">The seal</h2><img class="card-preview" alt="Lived Card" src="'+src+'"></aside>'+
           '</div>';
 
-        document.getElementById("share-x").onclick=()=>{
-          window.open(
-            "https://twitter.com/intent/tweet?text="+encodeURIComponent(share),
-            "_blank",
-            "noopener"
-          );
+        document.getElementById("share-x").onclick = ()=>window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(share),"_blank","noopener");
+        document.getElementById("watch-wallet").onclick = ()=>{
+          upsertWatch({address:r.address,kind:"wallet",label:r.short,portfolio:formatUsd(r.totalPortfolioUsd)});
+          document.getElementById("watch-wallet").textContent = "Watching";
         };
-
-        document.getElementById("watch-wallet").onclick=()=>{
-          upsertWatch({
-            address:r.address,
-            kind:"wallet",
-            label:r.short,
-            dna:r.dna.join(" / ")
-          });
-          document.getElementById("watch-wallet").textContent="Watching";
-        };
-
       }catch(err){
-        out.innerHTML='<div class="err">'+esc(err.message||"Scan failed.")+'</div>';
+        out.innerHTML = '<div class="err">'+esc(err.message||"Scan failed.")+'</div>';
       }
     }
 
     function setupClear(inputId,buttonId,outputId){
-      const input=document.getElementById(inputId);
-      const button=document.getElementById(buttonId);
-      const wrap=input.closest(".search-wrap");
-      const sync=()=>wrap.classList.toggle("has-value",!!input.value);
+      const input = document.getElementById(inputId);
+      const button = document.getElementById(buttonId);
+      const wrap = input.closest(".search-wrap");
+      const sync = ()=>wrap.classList.toggle("has-value",!!input.value);
       input.addEventListener("input",sync);
-      button.onclick=()=>{
-        input.value="";
+      button.onclick = ()=>{
+        input.value = "";
         sync();
         input.focus();
-        if(outputId)document.getElementById(outputId).innerHTML="";
+        if(outputId) document.getElementById(outputId).innerHTML = "";
       };
       sync();
     }
 
-    document.getElementById("token-form").onsubmit=e=>{e.preventDefault();runToken(document.getElementById("token-input").value)};
-    document.getElementById("wallet-form").onsubmit=e=>{e.preventDefault();runWallet(document.getElementById("wallet-input").value)};
-    document.getElementById("scan-lived").onclick=()=>{
-      const input=document.getElementById("token-input");
-      input.value=LIVED_MINT;
+    document.getElementById("token-form").onsubmit = e=>{e.preventDefault();runToken(document.getElementById("token-input").value)};
+    document.getElementById("wallet-form").onsubmit = e=>{e.preventDefault();runWallet(document.getElementById("wallet-input").value)};
+    document.getElementById("scan-lived").onclick = ()=>{
+      const input = document.getElementById("token-input");
+      input.value = LIVED_MINT;
       input.dispatchEvent(new Event("input"));
       runToken(LIVED_MINT);
     };
@@ -1279,6 +1044,11 @@
     setupClear("wallet-input","clear-wallet","wallet-out");
 
     renderWatch();
+
+    const hashRoute = location.hash.replace("#","");
+    if(sessionStorage.getItem("lived-guard-entered")==="1" || hashRoute){
+      show(hashRoute || "hub");
+    }
   </script>
 </body>
 </html>
