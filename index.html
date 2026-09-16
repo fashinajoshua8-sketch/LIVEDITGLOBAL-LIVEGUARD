@@ -570,7 +570,34 @@
       const marketCap = dex?.marketCap ?? dex?.fdv ?? null;
       const fdv = dex?.fdv ?? null;
 
-      const rawHolders = Array.isArray(rug?.topHolders) ? rug.topHolders.slice(0,20) : [];
+      // Solscan-style Holder Ingestion with Direct On-Chain RPC Fallback
+      let rawHolders = Array.isArray(rug?.topHolders) && rug.topHolders.length ? rug.topHolders.slice(0, 20) : [];
+
+      if (!rawHolders.length) {
+        try {
+          const largest = await rpc("getTokenLargestAccounts", [mint, { commitment: "confirmed" }]);
+          if (largest && Array.isArray(largest.value)) {
+            const totalSupplyBig = decoded?.supply ? BigInt(decoded.supply) : 0n;
+            rawHolders = largest.value.map(acc => {
+              let pct = null;
+              if (totalSupplyBig > 0n && acc.amount) {
+                try {
+                  pct = (Number(BigInt(acc.amount) * 10000n / totalSupplyBig)) / 100;
+                } catch {}
+              }
+              return {
+                address: acc.address,
+                amount: acc.amount,
+                uiAmountString: acc.uiAmountString || String(acc.uiAmount || ""),
+                pct: pct
+              };
+            });
+          }
+        } catch (err) {
+          console.warn("RPC getTokenLargestAccounts error:", err);
+        }
+      }
+
       const resolvedHolders = await Promise.all(
         rawHolders.map(async (h, i) => {
           const account = normalizeAddress(h.address || h.account || h.tokenAccount);
@@ -578,28 +605,29 @@
           let resolvedOwner = ownerDirect;
           let label = null;
 
-          if(!resolvedOwner && account){
+          if (!resolvedOwner && account) {
             const resolved = await resolveAccountOwner(account);
             resolvedOwner = resolved?.tokenAccountOwner || null;
           }
 
-          if(KNOWN_AMM_IDS[resolvedOwner]) {
+          if (KNOWN_AMM_IDS[resolvedOwner]) {
             label = KNOWN_AMM_IDS[resolvedOwner];
-          } else if(KNOWN_AMM_IDS[account]) {
+          } else if (KNOWN_AMM_IDS[account]) {
             label = KNOWN_AMM_IDS[account];
-          } else if(h.isLp || h.isLP || /amm|pool|vault/i.test(h.type||"") || /amm|pool|vault/i.test(h.name||"")) {
+          } else if (h.isLp || h.isLP || /amm|pool|vault/i.test(h.type || "") || /amm|pool|vault/i.test(h.name || "")) {
             label = h.name || h.type || "Liquidity Pool";
-          } else if(resolvedOwner === "11111111111111111111111111111111") {
+          } else if (resolvedOwner === "11111111111111111111111111111111") {
             label = "Burn / Incinerator";
           }
 
-          const pctNum = h.pct == null ? null : (Number(h.pct) <= 1 ? Number(h.pct)*100 : Number(h.pct));
+          const pctNum = h.pct == null ? null : (Number(h.pct) <= 1 ? Number(h.pct) * 100 : Number(h.pct));
 
           return {
             rank: i + 1,
             account: account || "—",
             owner: resolvedOwner || account || "—",
-            amount: h.uiAmountString || (h.amount != null ? String(h.amount) : "—"),
+            amount: h.amount,
+            uiAmountString: h.uiAmountString || null,
             pct: pctNum,
             label
           };
@@ -869,7 +897,7 @@
                 ${h.label ? `<span class="sol-tag ${h.label.includes('Burn') ? 'burn' : 'amm'}">${esc(h.label)}</span>` : ''}
               </div>
             </td>
-            <td style="text-align:right;font-family:var(--stamp)">${esc(formatTokenAmount(h.amount, r.decimals))}</td>
+            <td style="text-align:right;font-family:var(--stamp)">${esc(formatTokenAmount(h.amount, r.decimals, h.uiAmountString))}</td>
             <td style="text-align:right;font-weight:600">${h.pct != null ? h.pct.toFixed(2) + '%' : '—'}</td>
           </tr>
         `).join("");
