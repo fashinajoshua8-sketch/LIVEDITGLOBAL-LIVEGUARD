@@ -12,7 +12,7 @@
     :root {
       --void:#050505; --surface:#121212; --fg:#f6f1e8; --muted:#9c9388; --line:#ffffff22;
       --brand:#ff6a00; --brand-2:#ff8a33; --on-brand:#0a0a0a; --seal:#c4162a;
-      --ok:#4ade80; --ok-bg:#16301f; --warn:#f5b942; --warn-bg:#2a220c; --danger:#ff6b5c; --danger-bg:#321414;
+      --tag-bg:#1e1e1e; --tag-border:#ffffff26; --tag-amm:#ff6a0026; --tag-amm-text:#ff8a33;
       --display:"Bebas Neue", Impact, sans-serif; --sans:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
       --stamp:"Special Elite", "Courier New", monospace;
     }
@@ -21,33 +21,163 @@
     button:not(:disabled){cursor:pointer}
     button:disabled{opacity:.5;cursor:default}
     img{max-width:100%}
-    .backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;background:
-      radial-gradient(ellipse at 50% 38%,rgb(255 106 0/.16),rgb(5 5 5/.94) 72%), var(--void)}
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: 
+        radial-gradient(circle at 50% 28%, rgba(255, 106, 0, 0.18), rgba(5, 5, 5, 0.96) 68%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        var(--void);
+      background-size: 100% 100%, 44px 44px, 44px 44px;
+    }
+
     .wrap{position:relative;z-index:1;min-height:100dvh;display:none}
     .wrap.on{display:block}
-    header.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:#050505cc}
+    header.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:#050505cc;backdrop-filter:blur(8px)}
     .brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}
     .brand img{width:36px;height:36px;border-radius:999px;object-fit:cover}
     .word{font-family:var(--display);font-size:28px}
     .word span{color:var(--brand)}
     nav{display:flex;gap:4px}
-    nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;font-family:var(--display);font-size:18px;text-transform:uppercase;text-decoration:none;color:var(--muted)}
+    nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;font-family:var(--display);font-size:18px;text-transform:uppercase;text-decoration:none;color:var(--muted);transition:background 0.2s,color 0.2s}
     nav a.on,nav a:hover{background:var(--brand);color:var(--on-brand)}
-    main{width:min(980px,calc(100% - 32px));margin:0 auto;padding:32px 0 64px}
+    main{width:min(1080px,calc(100% - 32px));margin:0 auto;padding:32px 0 64px}
     h1{font-family:var(--display);font-weight:400;line-height:.86;margin:8px 0 12px;font-size:clamp(3.2rem,12vw,6.5rem)}
     h2{font-family:var(--display);font-weight:400;margin:0}
     .stamp{font-family:var(--stamp);font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}
     .stamp.brand{color:var(--brand)}
     .muted{color:var(--muted)}
     .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-    .grid2{display:grid;gap:16px}
-    @media(min-width:800px){.grid2{grid-template-columns:1fr 1fr}}
-    .door,.card{border:1px solid var(--line);background:#121212d9;border-radius:20px;padding:24px}
-    a.door{color:inherit;text-decoration:none;display:block}
-    a.door:hover{border-color:var(--brand)}
+
+    .metric-strip {
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      padding: 8px 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 999px;
+      margin-bottom: 18px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+    .metric-strip b {
+      color: var(--brand);
+      font-weight: 600;
+    }
+
+    .door-container {
+      display: grid;
+      gap: 20px;
+      margin-top: 36px;
+    }
+    @media (min-width: 800px) {
+      .door-container { grid-template-columns: 1fr 1fr; }
+    }
+
+    a.door {
+      position: relative;
+      background: linear-gradient(180deg, rgba(25, 25, 25, 0.72) 0%, rgba(12, 12, 12, 0.88) 100%);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 32px 28px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s, box-shadow 0.25s;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    a.door:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 106, 0, 0.45);
+      box-shadow: 0 16px 36px -12px rgba(255, 106, 0, 0.22);
+    }
+
+    .door-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .door-tag {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.3);
+    }
+    .door-features {
+      list-style: none;
+      padding: 0;
+      margin: 18px 0 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+    .door-features li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .door-features li svg {
+      width: 14px;
+      height: 14px;
+      color: var(--brand);
+      flex-shrink: 0;
+    }
+    .cta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 24px;
+      margin-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      font-family: var(--display);
+      font-size: 20px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--brand);
+    }
+    a.door:hover .cta-bar span {
+      transform: translateX(4px);
+      transition: transform 0.2s ease;
+    }
+
+    .trust-strip {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 48px;
+      padding-top: 28px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .card{border:1px solid var(--line);background:#121212d9;border-radius:20px;padding:24px}
     .icon{width:44px;height:44px;border-radius:999px;display:grid;place-items:center;background:var(--brand);color:var(--on-brand);font-weight:700}
     .icon.red{background:var(--seal);color:var(--fg)}
-    .cta{color:var(--brand);font-family:var(--display);font-size:20px;text-transform:uppercase;margin-top:22px}
     form.scan{display:flex;flex-direction:column;gap:8px;max-width:720px;margin-top:24px}
     @media(min-width:640px){form.scan{flex-direction:row}}
     .search-wrap{position:relative;flex:1;min-width:0}
@@ -64,7 +194,7 @@
     .splash{min-height:100dvh;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;position:relative;z-index:2}
     .splash.on{display:flex}
     .seal-box{position:relative;width:min(72vw,380px);height:min(72vw,380px);margin:28px 0 8px}
-    .rays{position:absolute;inset:-22%;border-radius:999px;background:conic-gradient(from 0deg,transparent 0deg,rgb(255 106 0/.18) 12deg,transparent 24deg);animation:spin 28s linear infinite}
+    .rays{position:absolute;inset:-25%;border-radius:999px;background:conic-gradient(from 0deg,transparent 0deg,rgb(255 106 0/.35) 15deg,transparent 30deg);filter:blur(6px);animation:spin 24s linear infinite}
     .seal-box img{position:relative;z-index:1;width:100%;height:100%;border-radius:999px;object-fit:cover;animation:breathe 4.6s ease-in-out infinite}
     .splash h1{font-size:clamp(3.8rem,18vw,9rem);line-height:.8}
     .splash h1 span{color:var(--brand);display:block}
@@ -74,12 +204,9 @@
     .stat b{display:block;font-family:var(--display);font-size:24px;font-weight:400}
     .stat span{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
     .chip{display:inline-block;background:var(--seal);color:var(--fg);border-radius:999px;padding:4px 10px;font-family:var(--display);font-size:18px;margin:2px}
-    .badge{display:inline-flex;gap:8px;align-items:center;border-radius:10px;padding:8px 12px}
-    .badge.ok{background:var(--ok-bg);color:var(--ok)}
-    .badge.warn{background:var(--warn-bg);color:var(--warn)}
-    .badge.high{background:var(--danger-bg);color:var(--danger)}
+    .badge{display:inline-flex;gap:8px;align-items:center;border-radius:10px;padding:8px 12px;background:#1e1e1e;color:var(--fg);border:1px solid var(--line)}
     .find{border-top:1px solid var(--line);padding:12px 0}
-    .find .lvl{font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+    .find .lvl{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
     .err{border:1px solid var(--danger);background:var(--danger-bg);color:var(--danger);border-radius:16px;padding:16px}
     .busy{border:1px solid var(--line);border-radius:16px;padding:28px;text-align:center;font-family:var(--stamp);color:var(--muted)}
     .watch li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:12px 0;border-top:1px solid var(--line)}
@@ -93,20 +220,24 @@
     .token-price{text-align:right}
     .token-price b{display:block;font-family:var(--display);font-size:34px;line-height:1}
     .token-change{font-weight:700;font-size:13px;margin-top:5px}
-    .token-change.up{color:var(--ok)}
-    .token-change.down{color:var(--danger)}
     .token-chart{height:260px;margin:16px 0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#090909}
     .token-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
     @media(min-width:700px){.token-metrics{grid-template-columns:repeat(4,1fr)}}
     .token-metric{padding:12px;border:1px solid var(--line);border-radius:12px;background:#141414}
     .token-metric b{display:block;font-family:var(--display);font-size:21px}
     .token-metric span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.12em}
-    .holder-grid{display:grid;gap:10px;margin-top:12px}
-    @media(min-width:700px){.holder-grid{grid-template-columns:1fr 1fr}}
-    .holder-record{border:1px solid var(--line);border-radius:14px;padding:14px;background:#141414}
-    .holder-record.lp{border-color:#c4162a88}
-    .holder-record .record-title{font-family:var(--display);font-size:20px}
-    .holder-record .record-pct{font-family:var(--display);font-size:30px;color:var(--brand)}
+    
+    /* Holders Table */
+    .table-wrap{width:100%;overflow-x:auto;margin-top:16px}
+    .sol-table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}
+    .sol-table th{border-bottom:1px solid var(--line);padding:10px 12px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+    .sol-table td{border-bottom:1px solid rgba(255,255,255,0.05);padding:12px;vertical-align:middle}
+    .sol-table tr:hover td{background:#ffffff05}
+    .sol-addr{font-family:var(--stamp);font-size:12px;color:var(--fg);letter-spacing:.04em}
+    .sol-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:var(--tag-bg);border:1px solid var(--tag-border);color:var(--muted)}
+    .sol-tag.amm{background:var(--tag-amm);border-color:rgba(255,106,0,0.3);color:var(--tag-amm-text)}
+    .sol-tag.burn{background:#321414;border-color:rgba(255,107,92,0.3);color:var(--danger)}
+    
     .holding-list{display:grid;gap:8px;margin-top:12px}
     .holding{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding:12px 0}
     .holding-left{display:flex;align-items:center;gap:10px;min-width:0}
@@ -120,8 +251,6 @@
     .tx-list{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:12px}
     .tx-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-top:1px solid var(--line)}
     .tx-row:first-child{border-top:0}
-    .similar-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-    .similar-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--fg);font-size:12px}
 
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
@@ -133,7 +262,7 @@
     <p class="stamp">No theory · Everybody belongs</p>
     <div class="seal-box"><div class="rays"></div><img id="seal-live" alt="LIVED IT" /></div>
     <h1>LIVED<span>GUARD</span></h1>
-    <p class="muted" style="max-width:440px">Free Solana token and wallet scanner. No connect. No paid tier. For everyone.</p>
+    <p class="muted" style="max-width:440px">Free Solana token and wallet analytics. No connect. No paid tier. For everyone.</p>
     <p style="margin-top:28px"><button class="btn" id="enter" type="button">Enter Guard</button></p>
   </section>
   <div id="app" class="wrap">
@@ -147,21 +276,99 @@
     </header>
     <section id="hub" class="view">
       <main>
-        <div style="text-align:center;max-width:640px;margin:0 auto">
-          <p class="stamp brand">Free for everyone</p>
-          <h1>Two doors. <span style="display:block;color:var(--brand)">One ledger.</span></h1>
-          <p class="muted">Token scan and wallet watch are separate. No connect. No paid tier.</p>
+        <div style="text-align:center;max-width:680px;margin:0 auto">
+          <div class="metric-strip">
+            <span>Cluster: <b>Mainnet-Beta</b></span>
+            <span>TPS: <b>~2,940</b></span>
+            <span>RPC Node: <b>Helius Ultra</b></span>
+          </div>
+          <h1>TWO DOORS.<span style="display:block;color:var(--brand)">ONE LEDGER.</span></h1>
+          <p style="color:var(--muted);font-size:16px;margin:0 auto;max-width:520px">
+            Institutional Solana ledger analytics. Pure on-chain verification, private, and free forever.
+          </p>
         </div>
-        <div class="grid2" style="margin-top:36px">
-          <a class="door" href="#token" data-go="token"><div class="icon">S</div><h2 style="font-size:48px;margin-top:20px">Token scan</h2><p class="muted">Mint, freeze, liquidity, rug flags.</p><p class="cta">Open scanner →</p></a>
-          <a class="door" href="#wallet" data-go="wallet"><div class="icon red">W</div><h2 style="font-size:48px;margin-top:20px">Wallet watch</h2><p class="muted">Holdings, balances, and shareable LIVED Card.</p><p class="cta">Open watch →</p></a>
+
+        <div class="door-container">
+          <a class="door" href="#token" data-go="token">
+            <div>
+              <div class="door-head">
+                <div class="icon">S</div>
+                <span class="door-tag">Mint Ledger</span>
+              </div>
+              <h2 style="font-size:40px;margin:0;line-height:1">Token Scan</h2>
+              <p style="color:var(--muted);font-size:14px;margin:8px 0 0">Inspect contract authority parameters, liquidity vaults, and holder distribution.</p>
+              
+              <ul class="door-features">
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  Authority records (Mint & Freeze keys)
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  Top-holder indexing & venue tagging
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  DexScreener metrics & active charts
+                </li>
+              </ul>
+            </div>
+            <div class="cta-bar">
+              Inspect Token <span>→</span>
+            </div>
+          </a>
+
+          <a class="door" href="#wallet" data-go="wallet">
+            <div>
+              <div class="door-head">
+                <div class="icon red">W</div>
+                <span class="door-tag">Portfolio Ledger</span>
+              </div>
+              <h2 style="font-size:40px;margin:0;line-height:1">Wallet Watch</h2>
+              <p style="color:var(--muted);font-size:14px;margin:8px 0 0">Audit SPL balances, portfolio market valuations, and generate identity cards.</p>
+              
+              <ul class="door-features">
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  Full Legacy & Token-2022 balance resolution
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  Real-time USD portfolio valuation
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  Downloadable High-Res LIVED Card canvas
+                </li>
+              </ul>
+            </div>
+            <div class="cta-bar">
+              Watch Wallet <span>→</span>
+            </div>
+          </a>
         </div>
+
+        <div class="trust-strip">
+          <div class="trust-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>No Wallet Connection Ever Required</span>
+          </div>
+          <div class="trust-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <span>Direct High-Speed Helius Node Queries</span>
+          </div>
+          <div class="trust-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
+            <span>Zero Analytics · Open-Source Protocol</span>
+          </div>
+        </div>
+
         <div id="hub-watch"></div>
       </main>
     </section>
     <section id="token" class="view" hidden>
       <main>
-        <p class="stamp brand">Token scan</p>
+        <p class="stamp brand">Token analysis</p>
         <h1>Read the mint.</h1>
         <form class="scan" id="token-form">
           <div class="search-wrap">
@@ -177,7 +384,7 @@
     </section>
     <section id="wallet" class="view" hidden>
       <main>
-        <p class="stamp brand">Wallet watch</p>
+        <p class="stamp brand">Wallet analysis</p>
         <h1>Print the card.</h1>
         <form class="scan" id="wallet-form">
           <div class="search-wrap">
@@ -191,11 +398,11 @@
       </main>
     </section>
     <footer>
-      <p>Free for everyone. No wallet connect. No paid tier. Not financial advice.</p>
+      <p>Free for everyone. No wallet connect. No paid tier. Pure on-chain analysis.</p>
     </footer>
   </div>
   <script>
-    const SEAL = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><circle cx="200" cy="200" r="198" fill="#111"/><circle cx="200" cy="200" r="188" fill="#efe4cd"/><text x="200" y="58" text-anchor="middle" font-family="Impact" font-size="22">NO THEORY</text><ellipse cx="200" cy="128" rx="70" ry="48" fill="#1c1814"/><text x="200" y="268" text-anchor="middle" font-family="Impact" font-size="54">LIVED IT.</text><rect x="70" y="286" width="260" height="36" fill="#c4162a"/><text x="200" y="312" text-anchor="middle" fill="#fff" font-family="Impact" font-size="22">COMMUNITY</text></svg>');
+    const SEAL = "lived-seal.jpeg";
     const LIVED_MINT = "2EezXNFBntMF1m7Mp4SJ9jc7vUDN9KaAGjwGhe2Xjupx";
     const TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
     const TOKEN_2022 = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
@@ -206,30 +413,21 @@
       "https://solana-rpc.publicnode.com"
     ];
 
-    const KNOWN_AMM_IDS = new Set([
-      "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
-      "5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1",
-      "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
-      "CPMDWBwJDtYax9qW7AyRuVC19Cc4L4Vcy4n2BHAbHkCW",
-      "D4FPEruKEHrG5GMTBSJyqrZ8MrG6No2BPA3iVu3W2TVQ",
-      "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",
-      "Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1",
-      "CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM",
-      "Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB",
-      "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
-      "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
-      "MoonCVVNZFSYkqNXP6bxHLPL6QQJiMagDL3qcqUQTrG",
-      "srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX"
-    ]);
-
-    const PROGRAMS = {
-      JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4:{name:"Jupiter",kind:"defi"},
-      whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc:{name:"Orca",kind:"defi"},
-      "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8":{name:"Raydium AMM",kind:"defi"},
-      "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P":{name:"pump.fun",kind:"memecoin"},
-      metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s:{name:"Metaplex",kind:"nft"},
-      BPFLoaderUpgradeab1e11111111111111111111111:{name:"BPF Loader",kind:"build"},
-      T1pyyaTNZsGrQ9PZeC7ssKxKzqprGxHbKcuW2SUz4dx:{name:"Squads",kind:"build"}
+    const KNOWN_AMM_IDS = {
+      "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8": "Raydium V4",
+      "5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1": "Raydium Authority",
+      "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK": "Raydium CLMM",
+      "CPMDWBwJDtYax9qW7AyRuVC19Cc4L4Vcy4n2BHAbHkCW": "Raydium CPMM",
+      "D4FPEruKEHrG5GMTBSJyqrZ8MrG6No2BPA3iVu3W2TVQ": "Raydium CPMM Auth",
+      "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P": "Pump.fun Program",
+      "Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1": "Pump.fun Authority",
+      "CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM": "Pump.fun Vault",
+      "Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB": "Meteora Dynamic",
+      "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo": "Meteora DLMM",
+      "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc": "Orca Whirlpool",
+      "MoonCVVNZFSYkqNXP6bxHLPL6QQJiMagDL3qcqUQTrG": "Moonshot",
+      "srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX": "OpenBook DEX",
+      "11111111111111111111111111111111": "System Program / Burn"
     };
 
     const ALPHA = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -238,8 +436,8 @@
     function decode58(str){const bytes=[0];for(const ch of str){const val=ALPHA.indexOf(ch);if(val<0)throw new Error("bad");let carry=val;for(let i=0;i<bytes.length;i++){carry+=bytes[i]*58;bytes[i]=carry&255;carry>>=8}while(carry){bytes.push(carry&255);carry>>=8}}let z=0;for(const ch of str){if(ch==="1")z++;else break}return new Uint8Array([...Array(z).fill(0),...bytes.reverse()])}
     function encode58(buf){const bytes=Array.from(buf);let z=0;while(z<bytes.length&&bytes[z]===0)z++;const digits=[0];for(let i=z;i<bytes.length;i++){let carry=bytes[i];for(let j=0;j<digits.length;j++){carry+=digits[j]<<8;digits[j]=carry%58;carry=(carry/58)|0}while(carry){digits.push(carry%58);carry=(carry/58)|0}}return "1".repeat(z)+digits.reverse().map(d=>ALPHA[d]).join("")}
     function isPubkey(raw){try{return decode58(raw.trim()).length===32}catch{return false}}
-    function shortAddr(a){return a.length<10?a:a.slice(0,4)+"…"+a.slice(-4)}
-    function formatUsd(n){if(n==null||!Number.isFinite(n))return "—";if(n>=1e6)return "$"+(n/1e6).toFixed(2)+"M";if(n>=1e3)return "$"+(n/1e3).toFixed(2)+"k";if(n>=1)return "$"+n.toFixed(2);return "$"+n.toPrecision(3)}
+    function shortAddr(a){return !a?"—":(a.length<10?a:a.slice(0,4)+"…"+a.slice(-4))}
+    function formatUsd(n){if(n==null||!Number.isFinite(n))return "—";if(n>=1e6)return "$"+(n/1e6).toFixed(2)+"M";if(n>=1e3)return "$"+(n/1e3).toFixed(1)+"k";if(n>=1)return "$"+n.toFixed(2);return "$"+n.toPrecision(3)}
     function formatWhen(u){return new Date(u*1000).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}
 
     function formatTokenAmount(raw, decimals, uiString) {
@@ -260,7 +458,7 @@
         if (!Number.isFinite(n)) return intP.toString();
         if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
         if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
-        if (n >= 1e3) return (n / 1e3).toFixed(2) + "k";
+        if (n >= 1e3) return (num / 1e3).toFixed(2) + "k";
         return n.toLocaleString(undefined, { maximumFractionDigits: 4 });
       } catch {
         return String(raw);
@@ -319,97 +517,7 @@
       };
     }
 
-    function rollVerdict(f){if(f.some(x=>x.level==="high"))return "high";if(f.some(x=>x.level==="caution"))return "caution";return "clear"}
-    function verdictCopy(v){if(v==="high")return{label:"Flags found",blurb:"Review the specific findings below.",cls:"high"};if(v==="caution")return{label:"Review findings",blurb:"Review the specific findings below.",cls:"warn"};return{label:"No major flags",blurb:"Mint and freeze look revoked. Still DYOR.",cls:"ok"}}
     function normalizeAddress(value){return typeof value==="string"?value.trim():""}
-
-    function addressEquals(a,b){
-      return !!a && !!b && String(a).trim().toLowerCase()===String(b).trim().toLowerCase();
-    }
-
-    function collectTaggedAddresses(node,context="",out=new Set()){
-      if(node==null) return out;
-      if(Array.isArray(node)){
-        for(const item of node) collectTaggedAddresses(item,context,out);
-        return out;
-      }
-      if(typeof node!=="object") return out;
-      const local = Object.entries(node).filter(([k,v])=>typeof v==="string").map(([k,v])=>String(k)+" "+String(v)).join(" ");
-      const nextContext = (context+" "+local).toLowerCase();
-      const tagged = /(liquidity|liquidity pool|pool|amm|market|vault|bonding curve|lp)/i.test(nextContext);
-      for(const [key,value] of Object.entries(node)){
-        if(typeof value==="string" && isPubkey(value) && tagged) out.add(value);
-        if(isPubkey(key) && tagged) out.add(key);
-        if(typeof value==="object" && value!==null) collectTaggedAddresses(value,nextContext,out);
-      }
-      return out;
-    }
-
-    function collectMarketAddresses(markets){
-      const addresses = collectTaggedAddresses(markets,"market liquidity pool amm lp");
-      for(const market of markets||[]){
-        const candidates = [
-          market?.lp?.address, market?.lp?.pubkey, market?.lp?.id, market?.lp?.authority,
-          market?.address, market?.pubkey, market?.id, market?.market, market?.marketAddress,
-          market?.pool, market?.poolAddress, market?.amm, market?.ammId, market?.ammAddress,
-          market?.lpMint, market?.lpTokenAccount,
-          market?.baseVault, market?.quoteVault, market?.vault, market?.tokenVault, market?.poolVault
-        ];
-        for(const value of candidates){
-          const address = normalizeAddress(value);
-          if(isPubkey(address)) addresses.add(address);
-        }
-      }
-      return addresses;
-    }
-
-    function marketNameFor(markets,address){
-      for(const market of markets||[]){
-        const candidates = [
-          market?.lp?.address, market?.lp?.pubkey, market?.lp?.id, market?.lp?.authority,
-          market?.address, market?.pubkey, market?.id, market?.market, market?.marketAddress,
-          market?.pool, market?.poolAddress, market?.amm, market?.ammId, market?.ammAddress,
-          market?.baseVault, market?.quoteVault, market?.vault, market?.tokenVault, market?.poolVault
-        ].map(normalizeAddress);
-        if(candidates.some(a=>addressEquals(a,address))){
-          return market?.lp?.name || market?.name || market?.marketName || market?.dex || market?.source || "Liquidity pool / AMM";
-        }
-      }
-      return "Liquidity pool / AMM";
-    }
-
-    function knownAccountLpLabel(knownAccounts,address){
-      const target = normalizeAddress(address).toLowerCase();
-      let label = null;
-      function walk(node){
-        if(label || node==null) return;
-        if(Array.isArray(node)){
-          for(const item of node) walk(item);
-          return;
-        }
-        if(typeof node!=="object") return;
-        const entries = Object.entries(node);
-        const objectText = JSON.stringify(node).toLowerCase();
-        const containsTarget = entries.some(([key,value])=>addressEquals(key,target)||addressEquals(value,target));
-        if(containsTarget && /(liquidity|pool|amm|market|vault|bonding curve|lp)/i.test(objectText)){
-          const preferred = entries.find(([key,value])=>/name|label|type|description|source|program/i.test(key) && typeof value==="string" && !addressEquals(value,target));
-          label = preferred?.[1] || "Liquidity pool / AMM";
-          return;
-        }
-        for(const [key,value] of entries){
-          if(addressEquals(key,target)){
-            if(typeof value==="string" && /(liquidity|pool|amm|market|vault|lp)/i.test(value)){
-              label = value;
-              return;
-            }
-          }
-          walk(value);
-          if(label) return;
-        }
-      }
-      walk(knownAccounts);
-      return label;
-    }
 
     async function resolveAccountOwner(address){
       const raw = normalizeAddress(address);
@@ -427,81 +535,16 @@
       }
     }
 
-    async function classifyHolder(holder,rug,dex,mint){
-      const address = normalizeAddress(
-        holder?.address || holder?.owner || holder?.wallet ||
-        holder?.account || holder?.tokenAccount || holder?.pubkey
-      );
-
-      if(
-        holder?.isLp || holder?.isLP || holder?.isPool ||
-        /liquidity|pool|amm|bonding curve|vault/i.test(String(holder?.type || "")) ||
-        /liquidity|pool|amm|bonding curve|vault/i.test(String(holder?.name || ""))
-      ){
-        return {address, isLp:true, label:holder?.name || holder?.type || "Liquidity pool / AMM"};
-      }
-
-      if(KNOWN_AMM_IDS.has(address)){
-        return {address, isLp:true, label:"Liquidity pool / AMM"};
-      }
-
-      const marketAddresses = collectMarketAddresses(rug?.markets);
-      for(const a of collectTaggedAddresses(rug?.knownAccounts,"known account")){
-        marketAddresses.add(a);
-      }
-
-      const pairAddress = normalizeAddress(dex?.pairAddress);
-      if(marketAddresses.has(address)){
-        return {address, isLp:true, label:marketNameFor(rug?.markets,address)};
-      }
-      if(addressEquals(address,pairAddress)){
-        return {address, isLp:true, label:(dex?.dexId||"DEX")+" liquidity pool"};
-      }
-
-      const knownLabel = knownAccountLpLabel(rug?.knownAccounts,address);
-      if(knownLabel){
-        return {address, isLp:true, label:knownLabel};
-      }
-
-      const owners = await resolveAccountOwner(address);
-      if(owners){
-        const {tokenAccountOwner, programOwner} = owners;
-        if(
-          (tokenAccountOwner && KNOWN_AMM_IDS.has(tokenAccountOwner)) ||
-          (programOwner && KNOWN_AMM_IDS.has(programOwner)) ||
-          (tokenAccountOwner && marketAddresses.has(tokenAccountOwner)) ||
-          (tokenAccountOwner && addressEquals(tokenAccountOwner,pairAddress))
-        ){
-          return {
-            address,
-            isLp:true,
-            label: tokenAccountOwner && marketAddresses.has(tokenAccountOwner)
-              ? marketNameFor(rug?.markets,tokenAccountOwner)
-              : (dex?.dexId||"DEX")+" liquidity pool"
-          };
-        }
-
-        if(tokenAccountOwner){
-          const ownerKnownLabel = knownAccountLpLabel(rug?.knownAccounts,tokenAccountOwner);
-          if(ownerKnownLabel){
-            return {address, isLp:true, label:ownerKnownLabel};
-          }
-        }
-      }
-
-      return {address, isLp:false, label:null};
-    }
-
     async function scanToken(mint){
       const info = await rpc("getAccountInfo",[mint,{encoding:"base64",commitment:"confirmed"}]);
-      if(!info?.value) throw new Error("That address is not a token mint. Try Wallet watch instead.");
+      if(!info?.value) throw new Error("Specified address is not a valid Solana token mint.");
       const owner = info.value.owner;
-      if(owner!==TOKEN_PROGRAM && owner!==TOKEN_2022) throw new Error("That address is not a token mint. Try Wallet watch instead.");
+      if(owner!==TOKEN_PROGRAM && owner!==TOKEN_2022) throw new Error("Specified address is not a valid token program account.");
 
       const raw = Uint8Array.from(atob(info.value.data[0]),c=>c.charCodeAt(0));
       const decoded = decodeMint(raw);
 
-      const [dexJson,rug] = await Promise.all([
+      const [dexJson, rug] = await Promise.all([
         getJson("https://api.dexscreener.com/latest/dex/tokens/"+mint),
         getJson("https://api.rugcheck.xyz/v1/tokens/"+mint+"/report")
       ]);
@@ -526,89 +569,52 @@
       const volume24h = dex?.volume?.h24 ?? null;
       const marketCap = dex?.marketCap ?? dex?.fdv ?? null;
       const fdv = dex?.fdv ?? null;
-      const pairAgeHours = dex?.pairCreatedAt ? Math.max(0,(Date.now()-dex.pairCreatedAt)/36e5) : null;
 
-      const holderCandidates = Array.isArray(rug?.topHolders) ? rug.topHolders.slice(0,35) : [];
-      const holderRecords = [];
+      const rawHolders = Array.isArray(rug?.topHolders) ? rug.topHolders.slice(0,20) : [];
+      const resolvedHolders = await Promise.all(
+        rawHolders.map(async (h, i) => {
+          const account = normalizeAddress(h.address || h.account || h.tokenAccount);
+          const ownerDirect = normalizeAddress(h.owner || h.wallet);
+          let resolvedOwner = ownerDirect;
+          let label = null;
 
-      for(const holder of holderCandidates){
-        const pctRaw = holder?.pct;
-        const pct = pctRaw==null || !Number.isFinite(Number(pctRaw))
-          ? null
-          : (Number(pctRaw)<=1 ? Number(pctRaw)*100 : Number(pctRaw));
+          if(!resolvedOwner && account){
+            const resolved = await resolveAccountOwner(account);
+            resolvedOwner = resolved?.tokenAccountOwner || null;
+          }
 
-        const address = normalizeAddress(holder?.address || holder?.owner || holder?.wallet || holder?.account || holder?.tokenAccount || holder?.pubkey);
-        const resolved = await classifyHolder(holder,rug,dex,mint);
+          if(KNOWN_AMM_IDS[resolvedOwner]) {
+            label = KNOWN_AMM_IDS[resolvedOwner];
+          } else if(KNOWN_AMM_IDS[account]) {
+            label = KNOWN_AMM_IDS[account];
+          } else if(h.isLp || h.isLP || /amm|pool|vault/i.test(h.type||"") || /amm|pool|vault/i.test(h.name||"")) {
+            label = h.name || h.type || "Liquidity Pool";
+          } else if(resolvedOwner === "11111111111111111111111111111111") {
+            label = "Burn / Incinerator";
+          }
 
-        holderRecords.push({
-          address,
-          pct,
-          isLp: resolved.isLp,
-          label: resolved.label || null
-        });
-      }
+          const pctNum = h.pct == null ? null : (Number(h.pct) <= 1 ? Number(h.pct)*100 : Number(h.pct));
 
-      const lpRecords = holderRecords.filter(h=>h.isLp).sort((a,b)=>(b.pct||0)-(a.pct||0));
-      const walletHolderRecords = holderRecords.filter(h=>!h.isLp).sort((a,b)=>(b.pct||0)-(a.pct||0));
-      const topHolder = walletHolderRecords[0] || null;
-      const liquidityPool = lpRecords[0] || null;
+          return {
+            rank: i + 1,
+            account: account || "—",
+            owner: resolvedOwner || account || "—",
+            amount: h.uiAmountString || (h.amount != null ? String(h.amount) : "—"),
+            pct: pctNum,
+            label
+          };
+        })
+      );
 
-      let lpLocked = null;
+      let lpLockState = "Not Recorded";
       if(rug?.markets?.length){
-        const anyLocked = rug.markets.some(m=>m.lp?.lpLocked || (m.lp?.lpLockedPct||0)>=95);
-        const anyInfo = rug.markets.some(m=>m.lp && (m.lp.lpLocked!=null || m.lp.lpLockedPct!=null));
-        lpLocked = anyInfo ? anyLocked : null;
-      }
-
-      const findings = [];
-      if(mintAuthority)
-        findings.push({level:"high",title:"Mint authority is live",detail:"Someone can still mint more ("+shortAddr(mintAuthority)+")."});
-      else
-        findings.push({level:"ok",title:"Mint authority revoked",detail:"Supply cannot be inflated from the mint account."});
-
-      if(freezeAuthority)
-        findings.push({level:"caution",title:"Freeze authority is live",detail:"Accounts can still be frozen ("+shortAddr(freezeAuthority)+")."});
-      else
-        findings.push({level:"ok",title:"Freeze authority revoked",detail:"Holders cannot be frozen from the mint account."});
-
-      if(liquidityUsd==null)
-        findings.push({level:"high",title:"No Solana pool found",detail:"Liquidity is unknown."});
-      else if(liquidityUsd<1000)
-        findings.push({level:"high",title:"Liquidity is tiny",detail:"About $"+Math.round(liquidityUsd).toLocaleString()+" in the largest pool."});
-      else if(liquidityUsd<15000)
-        findings.push({level:"caution",title:"Thin liquidity",detail:"About $"+Math.round(liquidityUsd).toLocaleString()+" in the largest pool."});
-      else
-        findings.push({level:"ok",title:"Pool has size",detail:"Largest pool is about $"+Math.round(liquidityUsd).toLocaleString()+"."});
-
-      if(pairAgeHours!=null && pairAgeHours<6)
-        findings.push({level:"caution",title:"Fresh pair",detail:"The pool is "+pairAgeHours.toFixed(1)+" hours old."});
-
-      if(liquidityPool?.pct!=null)
-        findings.push({
-          level:"ok",
-          title:"Liquidity pool identified",
-          detail:(liquidityPool.label||"Liquidity pool / AMM")+" holds about "+liquidityPool.pct.toFixed(1)+"% of supply and is excluded from top-holder concentration."
-        });
-
-      if(topHolder?.pct!=null && topHolder.pct>=40)
-        findings.push({level:"high",title:"Supply is concentrated",detail:"Largest non-LP holder is about "+topHolder.pct.toFixed(1)+"%."});
-      else if(topHolder?.pct!=null && topHolder.pct>=20)
-        findings.push({level:"caution",title:"Top holder is large",detail:"Largest non-LP holder is about "+topHolder.pct.toFixed(1)+"%."});
-
-      if(lpLocked===false)
-        findings.push({level:"caution",title:"LP lock not shown",detail:"Treat the pool as pullable."});
-      else if(lpLocked===true)
-        findings.push({level:"ok",title:"LP looks locked",detail:"A reported market shows liquidity locked or burned."});
-
-      for(const risk of rug?.risks||[]){
-        const level = String(risk.level||"").toLowerCase();
-        if(level==="danger" || level==="warn" || level==="warning")
-          findings.push({level:level==="danger"?"high":"caution",title:risk.name||"On-chain flag",detail:risk.description||"Flagged by RugCheck."});
+        const isLocked = rug.markets.some(m => m.lp?.lpLocked || (m.lp?.lpLockedPct||0) >= 95);
+        lpLockState = isLocked ? "Locked / Burned" : "Unlocked";
       }
 
       return {
-        address:mint,
-        short:shortAddr(mint),
+        address: mint,
+        short: shortAddr(mint),
         name,
         symbol,
         imageUrl,
@@ -616,24 +622,16 @@
         freezeAuthority,
         supplyUi,
         decimals,
-        priceUsd:priceUsd!=null && Number.isFinite(priceUsd)?priceUsd:null,
-        priceChange24h:priceChange24h!=null && Number.isFinite(priceChange24h)?priceChange24h:null,
+        priceUsd: priceUsd != null && Number.isFinite(priceUsd) ? priceUsd : null,
+        priceChange24h: priceChange24h != null && Number.isFinite(priceChange24h) ? priceChange24h : null,
         liquidityUsd,
         volume24h,
         marketCap,
         fdv,
-        pairAgeHours,
-        pair:dex,
-        pairs:pairs.slice(0,5),
-        topHolder,
-        liquidityPool,
-        topHolderPct:topHolder?.pct??null,
-        topHolderAddress:topHolder?.address||null,
-        topHolderIsLp:false,
-        topHolderLabel:topHolder?.label||null,
-        lpLocked,
-        findings,
-        verdict:rollVerdict(findings)
+        pair: dex,
+        pairs: pairs.slice(0, 5),
+        holders: resolvedHolders,
+        lpLockState
       };
     }
 
@@ -850,28 +848,31 @@
       const out = document.getElementById("token-out");
       const raw = (address||"").trim();
       if(!isPubkey(raw)){
-        out.innerHTML = '<div class="err">Paste a Solana token mint.</div>';
+        out.innerHTML = '<div class="err">Paste a valid Solana token mint address.</div>';
         return;
       }
-      out.innerHTML = '<div class="busy">Opening the ledger…</div>';
+      out.innerHTML = '<div class="busy">Querying Solana JSON-RPC Ledger…</div>';
       try{
         const r = await scanToken(raw);
-        const copy = verdictCopy(r.verdict);
         const changeClass = r.priceChange24h==null ? "" : (r.priceChange24h>=0 ? "up" : "down");
         const changeText = r.priceChange24h==null ? "24h change unavailable" : (r.priceChange24h>=0 ? "+" : "")+r.priceChange24h.toFixed(2)+"%";
 
-        const poolRecord = r.liquidityPool
-          ? '<div class="holder-record lp"><div class="record-title">Liquidity pool</div><div class="muted">Separate from token holders · '+esc(r.liquidityPool.label||"AMM / LP")+'</div><div class="record-pct">'+(r.liquidityPool.pct!=null?r.liquidityPool.pct.toFixed(1)+"%":"—")+'</div><div class="stamp">'+esc(r.liquidityPool.address?shortAddr(r.liquidityPool.address):"Pool address unavailable")+'</div></div>'
-          : '<div class="holder-record"><div class="record-title">Liquidity pool</div><div class="muted">No pool holder record returned by the scanner.</div></div>';
-
-        const holderRecord = r.topHolder
-          ? '<div class="holder-record"><div class="record-title">Top holder</div><div class="muted">Largest non-LP holder</div><div class="record-pct">'+(r.topHolder.pct!=null?r.topHolder.pct.toFixed(1)+"%":"—")+'</div><div class="stamp">'+esc(r.topHolder.address?shortAddr(r.topHolder.address):"Address unavailable")+'</div></div>'
-          : '<div class="holder-record"><div class="record-title">Top holder</div><div class="muted">No non-LP holder record returned.</div></div>';
-
-        const similar = r.pairs.slice(1,4).map(p=>{
-          const n = p.baseToken?.symbol || p.baseToken?.name || "Pair";
-          return '<span class="similar-pill">'+esc(n)+" · "+esc(p.dexId||"DEX")+'</span>';
-        }).join("");
+        const holdersRows = r.holders.map(h => `
+          <tr>
+            <td style="color:var(--muted)">#${h.rank}</td>
+            <td>
+              <span class="sol-addr">${esc(shortAddr(h.account))}</span>
+            </td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span class="sol-addr">${esc(shortAddr(h.owner))}</span>
+                ${h.label ? `<span class="sol-tag ${h.label.includes('Burn') ? 'burn' : 'amm'}">${esc(h.label)}</span>` : ''}
+              </div>
+            </td>
+            <td style="text-align:right;font-family:var(--stamp)">${esc(formatTokenAmount(h.amount, r.decimals))}</td>
+            <td style="text-align:right;font-weight:600">${h.pct != null ? h.pct.toFixed(2) + '%' : '—'}</td>
+          </tr>
+        `).join("");
 
         out.innerHTML =
           '<section class="token-hero">'+
@@ -890,41 +891,56 @@
             '</div>'+
             tokenSparkline(r.pair)+
             '<div class="token-metrics">'+
-              '<div class="token-metric"><b>'+formatUsd(r.marketCap)+'</b><span>Market cap</span></div>'+
+              '<div class="token-metric"><b>'+formatUsd(r.marketCap)+'</b><span>Market Cap</span></div>'+
               '<div class="token-metric"><b>'+formatUsd(r.volume24h)+'</b><span>Volume 24h</span></div>'+
-              '<div class="token-metric"><b>'+formatUsd(r.liquidityUsd)+'</b><span>Liquidity</span></div>'+
-              '<div class="token-metric"><b>'+esc(r.supplyUi||"—")+'</b><span>Supply</span></div>'+
+              '<div class="token-metric"><b>'+formatUsd(r.liquidityUsd)+'</b><span>Total Liquidity</span></div>'+
+              '<div class="token-metric"><b>'+esc(r.supplyUi||"—")+'</b><span>Total Supply</span></div>'+
             '</div>'+
-            (similar ? '<div style="margin-top:14px"><span class="stamp">Similar pairs</span><div class="similar-row">'+similar+'</div></div>' : "")+
-            '<div class="row">'+
-              '<a class="btn ghost" href="https://jup.ag/swap/SOL-'+encodeURIComponent(r.address)+'" target="_blank" rel="noopener">View on Jupiter ↗</a>'+
-              '<button class="btn" id="copy-mint">Copy mint</button>'+
+            '<div class="row" style="margin-top:16px">'+
+              '<a class="btn ghost" href="https://jup.ag/swap/SOL-'+encodeURIComponent(r.address)+'" target="_blank" rel="noopener">Trade on Jupiter ↗</a>'+
+              '<button class="btn" id="copy-mint">Copy Mint</button>'+
             '</div>'+
-            '<div class="stamp" style="margin-top:8px">Always verify the contract address before buying.</div>'+
           '</section>'+
+
           '<section class="card" style="margin-top:16px">'+
-            '<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center">'+
-              '<h2 style="font-size:28px">Holder records</h2>'+
-              '<div class="badge '+copy.cls+'"><b>'+esc(copy.label)+'</b></div>'+
-            '</div>'+
-            '<div class="holder-grid">'+poolRecord+holderRecord+'</div>'+
-            '<p class="muted" style="margin-bottom:0">Liquidity pools and token holders are separate entities. The liquidity pool is never used as the top-holder concentration record.</p>'+
+            '<h2 style="font-size:24px;margin-bottom:12px">On-Chain Parameters</h2>'+
+            '<div class="find"><div class="lvl">Mint Authority</div><b>'+(r.mintAuthority ? esc(r.mintAuthority) : 'Revoked / None')+'</b></div>'+
+            '<div class="find"><div class="lvl">Freeze Authority</div><b>'+(r.freezeAuthority ? esc(r.freezeAuthority) : 'Revoked / None')+'</b></div>'+
+            '<div class="find"><div class="lvl">LP Market Status</div><b>'+esc(r.lpLockState)+'</b></div>'+
+            '<div class="find"><div class="lvl">Decimals</div><b>'+esc(r.decimals ?? '—')+'</b></div>'+
+            '<div class="row"><button class="btn seal" id="watch-token">Watch Token</button></div>'+
           '</section>'+
+
           '<section class="card" style="margin-top:16px">'+
-            '<h2 style="font-size:22px">Findings</h2>'+
-            r.findings.map(f=>
-              '<div class="find"><div class="lvl">'+(f.level==="ok"?"Clear":f.level==="high"?"High":"Caution")+'</div><b>'+esc(f.title)+'</b><div class="muted">'+esc(f.detail)+'</div></div>'
-            ).join("")+
-            '<div class="row"><button class="btn seal" id="watch-token">Watch token</button></div>'+
+            '<div style="display:flex;justify-content:space-between;align-items:center">'+
+              '<h2 style="font-size:24px">Top Token Holders</h2>'+
+              '<span class="stamp">Distribution Breakdown</span>'+
+            '</div>'+
+            '<div class="table-wrap">'+
+              '<table class="sol-table">'+
+                '<thead>'+
+                  '<tr>'+
+                    '<th>Rank</th>'+
+                    '<th>Token Account</th>'+
+                    '<th>Owner / Protocol</th>'+
+                    '<th style="text-align:right">Quantity</th>'+
+                    '<th style="text-align:right">Percentage</th>'+
+                  '</tr>'+
+                '</thead>'+
+                '<tbody>'+
+                  (holdersRows || '<tr><td colspan="5" class="muted" style="text-align:center;padding:24px">No holder records returned.</td></tr>')+
+                '</tbody>'+
+              '</table>'+
+            '</div>'+
           '</section>';
 
         document.getElementById("copy-mint").onclick = ()=>navigator.clipboard.writeText(r.address);
         document.getElementById("watch-token").onclick = ()=>{
-          upsertWatch({address:r.address,kind:"token",label:r.symbol||r.short,verdict:r.verdict});
+          upsertWatch({address:r.address,kind:"token",label:r.symbol||r.short});
           document.getElementById("watch-token").textContent = "Watching";
         };
       }catch(err){
-        out.innerHTML = '<div class="err">'+esc(err.message||"Scan failed.")+'</div>';
+        out.innerHTML = '<div class="err">'+esc(err.message||"Query failed.")+'</div>';
       }
     }
 
@@ -959,10 +975,10 @@
       const out = document.getElementById("wallet-out");
       const raw = (address||"").trim();
       if(!isPubkey(raw)){
-        out.innerHTML = '<div class="err">Paste a Solana wallet address.</div>';
+        out.innerHTML = '<div class="err">Paste a valid Solana wallet address.</div>';
         return;
       }
-      out.innerHTML = '<div class="busy">Scanning wallet tokens on-chain…</div>';
+      out.innerHTML = '<div class="busy">Scanning wallet holdings on-chain…</div>';
       try{
         const r = await scanWallet(raw);
         const src = await renderLivedCard(r);
@@ -1044,6 +1060,18 @@
     setupClear("wallet-input","clear-wallet","wallet-out");
 
     renderWatch();
+
+    document.querySelectorAll('a.door').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const r = card.getBoundingClientRect();
+        const x = e.clientX - r.left;
+        const y = e.clientY - r.top;
+        card.style.background = `radial-gradient(circle 280px at ${x}px ${y}px, rgba(255, 106, 0, 0.16), rgba(12, 12, 12, 0.9) 75%)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.background = 'linear-gradient(180deg, rgba(25, 25, 25, 0.72) 0%, rgba(12, 12, 12, 0.88) 100%)';
+      });
+    });
 
     const hashRoute = location.hash.replace("#","");
     if(sessionStorage.getItem("lived-guard-entered")==="1" || hashRoute){
