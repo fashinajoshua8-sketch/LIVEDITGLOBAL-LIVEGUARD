@@ -234,6 +234,51 @@
 
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+
+    /* Risk Hunt — LIVED Guard theme */
+    .risk-hunt-door .icon{background:var(--brand);color:var(--on-brand)}
+    .risk-hero{text-align:center;max-width:760px;margin:0 auto 28px}
+    .risk-intro{max-width:650px;margin:0 auto;color:var(--muted);font-size:16px}
+    .risk-shell{margin-top:22px;padding:20px}
+    .risk-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+    .risk-title{font-family:var(--display);font-size:42px;font-weight:400;line-height:.95;margin:12px 0 8px}
+    .risk-score-box{min-width:92px;text-align:center;border:1px solid var(--line);background:#0c0c0c;border-radius:14px;padding:10px 12px}
+    .risk-score-box span,.risk-score-box small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.14em}
+    .risk-score-box b{display:block;font-family:var(--display);font-size:38px;line-height:1.05;color:var(--brand)}
+    .risk-evidence{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:20px}
+    .risk-stat{border:1px solid var(--line);background:#171717;border-radius:12px;padding:12px}
+    .risk-stat b{display:block;font-family:var(--display);font-size:22px;font-weight:400}
+    .risk-stat span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.12em}
+    .risk-question{border-top:1px solid var(--line);margin-top:22px;padding-top:22px}
+    .risk-question h2{font-size:28px;margin:4px 0 14px}
+    .risk-options{display:grid;gap:9px}
+    .risk-option{width:100%;text-align:left;border:1px solid var(--line);background:#151515;color:var(--fg);border-radius:12px;padding:14px 15px;font:600 15px var(--sans);transition:border-color .2s,background .2s,transform .2s}
+    .risk-option:hover:not(:disabled){border-color:rgba(255,106,0,.6);background:#1c160f;transform:translateY(-1px)}
+    .risk-option.correct{border-color:#4ade80;background:rgba(74,222,128,.08)}
+    .risk-option.wrong{border-color:var(--seal);background:rgba(196,22,42,.08)}
+    .risk-option:disabled{cursor:default}
+    .risk-feedback{margin-top:16px;border-radius:14px;border:1px solid var(--line);padding:16px;background:#101010}
+    .risk-feedback.good{border-color:rgba(74,222,128,.45)}
+    .risk-feedback.bad{border-color:rgba(196,22,42,.5)}
+    .risk-feedback strong{font-family:var(--display);font-size:24px;font-weight:400;display:block;margin-bottom:5px}
+    .risk-actions{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+    .risk-result{text-align:center;margin-top:20px}
+    .risk-result h2{font-size:52px;line-height:.9;margin:6px 0 10px}
+    .risk-result .result-score{font-family:var(--display);font-size:76px;line-height:.9;color:var(--brand)}
+    .risk-result p{max-width:600px;margin:10px auto;color:var(--muted)}
+    .risk-disclaimer{text-align:center;font-size:12px;margin:18px auto 0;max-width:700px}
+    @media(min-width:800px){
+      .risk-hunt-door{grid-column:1 / -1}
+      .risk-evidence{grid-template-columns:repeat(4,1fr)}
+    }
+    @media(max-width:600px){
+      .risk-top{flex-direction:column}
+      .risk-score-box{width:100%;display:grid;grid-template-columns:1fr 1fr;align-items:center;text-align:left}
+      .risk-score-box b{grid-row:1 / span 2;grid-column:2;text-align:right}
+      .risk-score-box span{grid-column:1}.risk-score-box small{grid-column:1}
+      .risk-actions{flex-direction:column-reverse}
+      .risk-actions .btn{width:100%}
+    }
   </style>
 </head>
 <body>
@@ -252,6 +297,7 @@
         <a href="#hub" data-go="hub" id="nav-hub">Home</a>
         <a href="#token" data-go="token" id="nav-token">Token scan</a>
         <a href="#wallet" data-go="wallet" id="nav-wallet">Wallet watch</a>
+        <a href="#risk-hunt" data-go="risk-hunt" id="nav-risk-hunt">Risk Hunt</a>
       </nav>
     </header>
     <section id="hub" class="view">
@@ -321,6 +367,23 @@
               Watch Wallet <span>→</span>
             </div>
           </a>
+
+          <a class="door risk-hunt-door" href="#risk-hunt" data-go="risk-hunt">
+            <div>
+              <div class="door-head">
+                <div class="icon">R</div>
+                <span class="door-tag">Guard Academy</span>
+              </div>
+              <h2 style="font-size:40px;margin:0;line-height:1">Risk Hunt</h2>
+              <p style="color:var(--muted);font-size:14px;margin:8px 0 0">Test your on-chain instincts with simulated tokens and wallets built around the same warning signs Guard analyzes.</p>
+              <ul class="door-features">
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Spot concentration, authority & liquidity risks</li>
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Learn why each signal matters</li>
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Build a score across 10 scenarios</li>
+              </ul>
+            </div>
+            <div class="cta-bar">Hunt the Risk <span>→</span></div>
+          </a>
         </div>
 
         <div class="trust-strip">
@@ -372,6 +435,42 @@
         <div id="wallet-watch"></div>
       </main>
     </section>
+    <section id="risk-hunt" class="view" hidden>
+      <main>
+        <div class="risk-hero">
+          <p class="stamp brand">Guard Academy · simulated data</p>
+          <h1>HUNT THE <span style="display:block;color:var(--brand)">RISK.</span></h1>
+          <p class="risk-intro">Analyze a simulated token or wallet, identify the main warning sign, and learn how LIVED Guard interprets the evidence.</p>
+        </div>
+
+        <div class="risk-shell card">
+          <div class="risk-top">
+            <div>
+              <span class="door-tag" id="risk-type">SIMULATED TOKEN</span>
+              <h2 id="risk-title" class="risk-title">Loading scenario…</h2>
+              <p id="risk-summary" class="muted"></p>
+            </div>
+            <div class="risk-score-box">
+              <span>Score</span><b id="risk-score">0</b><small id="risk-progress">1 / 10</small>
+            </div>
+          </div>
+          <div id="risk-evidence" class="risk-evidence"></div>
+          <div class="risk-question">
+            <p class="stamp">Your read</p>
+            <h2>What is the main warning sign?</h2>
+            <div id="risk-options" class="risk-options"></div>
+          </div>
+          <div id="risk-feedback" class="risk-feedback" hidden></div>
+          <div class="risk-actions">
+            <button class="btn ghost" id="risk-restart" type="button">Restart</button>
+            <button class="btn" id="risk-next" type="button" disabled>Next scenario →</button>
+          </div>
+        </div>
+        <div id="risk-result" class="risk-result card" hidden></div>
+        <p class="risk-disclaimer muted">Risk Hunt uses simulated scenarios for education. It does not make claims about real tokens, wallets, or projects.</p>
+      </main>
+    </section>
+
     <footer>
       <p>Free for everyone. No wallet connect. No paid tier. Pure on-chain analysis.</p>
     </footer>
@@ -803,14 +902,16 @@
     }
 
     function show(name){
-      const target = ["hub","token","wallet"].includes(name) ? name : "hub";
+      const target = ["hub","token","wallet","risk-hunt"].includes(name) ? name : "hub";
       document.getElementById("splash").classList.remove("on");
       document.getElementById("app").classList.add("on");
-      ["hub","token","wallet"].forEach(id=>{
+      ["hub","token","wallet","risk-hunt"].forEach(id=>{
         document.getElementById(id).hidden = id!==target;
-        document.getElementById("nav-"+id).classList.toggle("on",id===target);
+        const nav = document.getElementById("nav-"+id);
+        if(nav) nav.classList.toggle("on",id===target);
       });
       location.hash = target;
+      if(target==="risk-hunt") riskHuntInit();
     }
 
     document.getElementById("enter").onclick = ()=>{sessionStorage.setItem("lived-guard-entered","1");show("hub")};
@@ -1128,6 +1229,65 @@
       };
       sync();
     }
+
+    /* Risk Hunt — simulated educational scenarios; never mixed with live scans */
+    const RISK_HUNT_SCENARIOS = [
+      {type:"SIMULATED TOKEN",title:"The Concentrated Mint",summary:"A new token looks active, but ownership is heavily clustered.",evidence:[["Top holder","47.8%"],["Top 10","82.4%"],["Mint authority","Revoked"],["Freeze authority","Revoked"]],options:["Extreme holder concentration","Unrevoked freeze authority","No visible token metadata","Low transaction count"],answer:0,explanation:"The dominant signal is concentration: one holder controls nearly half the supply and the top 10 control more than 80%. A large holder can materially affect liquidity and price if they move tokens."},
+      {type:"SIMULATED TOKEN",title:"The Open Mint",summary:"The supply can still be changed by an active authority.",evidence:[["Top holder","8.9%"],["Top 10","31.2%"],["Mint authority","ACTIVE"],["Freeze authority","Revoked"]],options:["Active mint authority","Healthy holder spread","Revoked freeze authority","Normal transfer activity"],answer:0,explanation:"An active mint authority means the token's supply can potentially be increased by the authority. That is a key contract-level signal to investigate."},
+      {type:"SIMULATED TOKEN",title:"Liquidity on a Leash",summary:"The token has a visible pool, but the liquidity structure deserves attention.",evidence:[["Pool liquidity","$42.6K"],["LP status","Concentrated"],["Top holder","12.1%"],["Mint authority","Revoked"]],options:["Concentrated liquidity structure","Revoked mint authority","Moderate top holder","Pool exists"],answer:0,explanation:"A pool existing does not by itself make liquidity robust. A concentrated liquidity position can create additional market-depth risk that deserves inspection."},
+      {type:"SIMULATED TOKEN",title:"The Hidden Freeze",summary:"Most surface metrics look normal, but a powerful authority remains.",evidence:[["Top holder","6.4%"],["Top 10","28.7%"],["Mint authority","Revoked"],["Freeze authority","ACTIVE"]],options:["Active freeze authority","Balanced distribution","Revoked mint authority","Top holder below 10%"],answer:0,explanation:"An active freeze authority is the standout signal. It can give the authority the ability to restrict token-account activity, depending on the token program and implementation."},
+      {type:"SIMULATED WALLET",title:"The Fresh Whale",summary:"This wallet holds a large position despite a very short observed history.",evidence:[["Observed age","3 days"],["SOL balance","184.2 SOL"],["Main token","38.6% of supply"],["Recent txs","61"]],options:["Large concentration from a very fresh wallet","High transaction count","Healthy SOL balance","Wallet has recent activity"],answer:0,explanation:"The combination of very recent wallet history and a large token position is the key signal. It does not prove malicious behavior, but it is important context for further investigation."},
+      {type:"SIMULATED WALLET",title:"The Exit Pattern",summary:"A wallet repeatedly receives a token and moves it toward the same venue.",evidence:[["Token inflows","14"],["Outflows","19"],["Common destination","1 address"],["Window","9 hours"]],options:["Repeated outflows to one destination","Multiple inflows","Nine-hour window","Token balance exists"],answer:0,explanation:"Repeated transfers toward one destination can reveal a meaningful behavioral pattern. Guard-style analysis should flag the pattern for review rather than assume the wallet's intent."},
+      {type:"SIMULATED TOKEN",title:"The Tiny Float",summary:"Supply looks decentralized on paper, but very little liquidity is available.",evidence:[["Market cap","$2.8M"],["Pool liquidity","$18.4K"],["Top 10","44.1%"],["Mint authority","Revoked"]],options:["Very thin liquidity relative to the token's size","Revoked mint authority","Top 10 below 50%","Visible market cap"],answer:0,explanation:"Thin liquidity means relatively small trades can have a larger market impact. Comparing liquidity with market capitalization helps put the headline market cap in context."},
+      {type:"SIMULATED TOKEN",title:"The Split Control",summary:"Different authorities remain active on the same token.",evidence:[["Mint authority","ACTIVE"],["Freeze authority","ACTIVE"],["Top holder","4.2%"],["Top 10","21.6%"]],options:["Both mint and freeze authorities are active","Low top-holder share","Moderate top-10 share","Normal holder spread"],answer:0,explanation:"Both authorities being active creates two separate contract-level signals that deserve inspection: supply control and account-freezing capability."},
+      {type:"SIMULATED WALLET",title:"The Dormant Giant",summary:"A large token balance sits in a wallet with almost no recent activity.",evidence:[["Observed age","418 days"],["Main token","26.4%"],["Recent txs","2 / 90d"],["SOL balance","0.08 SOL"]],options:["Large position with very low recent activity","Old wallet age","Low SOL balance","Only two recent transactions"],answer:0,explanation:"The large position combined with very low recent activity is the useful signal. Dormancy does not mean danger by itself; it tells you to examine the wallet's history and position context."},
+      {type:"SIMULATED TOKEN",title:"The Clean Read",summary:"Not every scenario is a trap. The data can also show a relatively balanced profile.",evidence:[["Top holder","3.8%"],["Top 10","19.7%"],["Mint authority","Revoked"],["Freeze authority","Revoked"]],options:["No major red flag in the supplied signals","Revoked authorities are dangerous","Top holder below 5% is automatically suspicious","Balanced distribution proves the token is safe"],answer:0,explanation:"The correct read is simply that no major red flag appears in these supplied signals. That does not prove a token is safe; it means these particular indicators do not show an obvious issue."}
+    ];
+
+    let riskHuntState={index:0,score:0,answered:false};
+    function riskHuntInit(){if(document.getElementById("risk-title"))riskHuntRender();}
+    function riskHuntRender(){
+      const s=RISK_HUNT_SCENARIOS[riskHuntState.index];
+      riskHuntState.answered=false;
+      document.getElementById("risk-result").hidden=true;
+      document.getElementById("risk-type").textContent=s.type;
+      document.getElementById("risk-title").textContent=s.title;
+      document.getElementById("risk-summary").textContent=s.summary;
+      document.getElementById("risk-score").textContent=String(riskHuntState.score);
+      document.getElementById("risk-progress").textContent=(riskHuntState.index+1)+" / "+RISK_HUNT_SCENARIOS.length;
+      document.getElementById("risk-evidence").innerHTML=s.evidence.map(x=>'<div class="risk-stat"><b>'+esc(x[1])+'</b><span>'+esc(x[0])+'</span></div>').join("");
+      document.getElementById("risk-options").innerHTML=s.options.map((o,i)=>'<button class="risk-option" type="button" data-risk-answer="'+i+'">'+esc(o)+'</button>').join("");
+      const f=document.getElementById("risk-feedback"); f.hidden=true; f.className="risk-feedback"; f.innerHTML="";
+      const n=document.getElementById("risk-next"); n.disabled=true; n.textContent=riskHuntState.index===RISK_HUNT_SCENARIOS.length-1?"See result →":"Next scenario →";
+    }
+    function riskHuntAnswer(choice){
+      if(riskHuntState.answered)return;
+      riskHuntState.answered=true;
+      const s=RISK_HUNT_SCENARIOS[riskHuntState.index], correct=Number(choice)===s.answer;
+      if(correct)riskHuntState.score++;
+      document.querySelectorAll("[data-risk-answer]").forEach(btn=>{
+        const n=Number(btn.getAttribute("data-risk-answer")); btn.disabled=true;
+        if(n===s.answer)btn.classList.add("correct");
+        if(n===Number(choice)&&n!==s.answer)btn.classList.add("wrong");
+      });
+      const f=document.getElementById("risk-feedback"); f.hidden=false; f.className="risk-feedback "+(correct?"good":"bad");
+      f.innerHTML='<strong>'+esc(correct?"Correct read.":"Not quite.")+'</strong><span>'+esc(s.explanation)+'</span>';
+      document.getElementById("risk-score").textContent=String(riskHuntState.score);
+      document.getElementById("risk-next").disabled=false;
+    }
+    function riskHuntFinish(){
+      const total=RISK_HUNT_SCENARIOS.length,score=riskHuntState.score;
+      const message=score===total?"You spotted every key signal in the simulation.":score>=7?"You consistently identified the main on-chain signals.":score>=4?"You picked up several important signals. Review the explanations and run it again.":"The explanations are the point: use another run to sharpen how you read the evidence.";
+      document.getElementById("risk-result").innerHTML='<p class="stamp brand">Run complete</p><div class="result-score">'+score+'/'+total+'</div><h2>Risk Hunt</h2><p>'+esc(message)+'</p><button class="btn" type="button" id="risk-play-again">Play again</button>';
+      document.getElementById("risk-result").hidden=false;
+      document.getElementById("risk-result").scrollIntoView({behavior:"smooth",block:"center"});
+      document.getElementById("risk-next").disabled=true;
+    }
+    document.body.addEventListener("click",e=>{
+      const a=e.target.closest("[data-risk-answer]"); if(a)riskHuntAnswer(a.getAttribute("data-risk-answer"));
+      const n=e.target.closest("#risk-next"); if(n&&!n.disabled){if(riskHuntState.index>=RISK_HUNT_SCENARIOS.length-1)riskHuntFinish();else{riskHuntState.index++;riskHuntRender();}}
+      if(e.target.closest("#risk-restart")||e.target.closest("#risk-play-again")){riskHuntState={index:0,score:0,answered:false};riskHuntRender();document.getElementById("risk-hunt").scrollIntoView({behavior:"smooth",block:"start"});}
+    });
 
     document.getElementById("token-form").onsubmit = e=>{e.preventDefault();runToken(document.getElementById("token-input").value)};
     document.getElementById("wallet-form").onsubmit = e=>{e.preventDefault();runWallet(document.getElementById("wallet-input").value)};
