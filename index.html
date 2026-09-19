@@ -15,7 +15,7 @@
       --tag-bg:#1e1e1e; --tag-border:#ffffff26; --tag-amm:#ff6a0026; --tag-amm-text:#ff8a33;
       --display:"Bebas Neue", Impact, sans-serif; --sans:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
       --stamp:"Special Elite", "Courier New", monospace;
-      --good:#10b981; --good-bg:#10b9811a; --bad:#ef4444; --bad-bg:#ef44441a;
+      --good:#10b981; --good-bg:#10b9811a; --bad:#c4162a; --bad-bg:#c4162a26;
     }
     *{box-sizing:border-box}
     html,body{margin:0;min-height:100%;background:var(--void);color:var(--fg);font-family:var(--sans);line-height:1.5}
@@ -159,7 +159,6 @@
     .card{border:1px solid var(--line);background:#121212d9;border-radius:20px;padding:24px}
     .icon{width:44px;height:44px;border-radius:999px;display:grid;place-items:center;background:var(--brand);color:var(--on-brand);font-weight:700}
     .icon.red{background:var(--seal);color:var(--fg)}
-    .icon.sim{background:#3b82f6;color:#fff}
     form.scan{display:flex;flex-direction:column;gap:8px;max-width:720px;margin-top:24px}
     @media(min-width:640px){form.scan{flex-direction:row}}
     .search-wrap{position:relative;flex:1;min-width:0}
@@ -172,8 +171,6 @@
     .btn:hover{background:var(--brand-2)}
     .btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
     .btn.seal{background:var(--seal);color:var(--fg)}
-    .btn.blue{background:#2563eb;color:#fff}
-    .btn.blue:hover{background:#1d4ed8}
     footer{text-align:center;color:var(--muted);font-size:14px;padding:24px 16px 40px;border-top:1px solid var(--line)}
     .splash{min-height:100dvh;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;position:relative;z-index:2}
     .splash.on{display:flex}
@@ -188,7 +185,7 @@
     .stat b{display:block;font-family:var(--display);font-size:24px;font-weight:400}
     .stat span{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
     .chip{display:inline-block;background:var(--seal);color:var(--fg);border-radius:999px;padding:4px 10px;font-family:var(--display);font-size:18px;margin:2px}
-    .chip.blue{background:#1d4ed8}
+    .chip.brand{background:var(--brand);color:var(--on-brand)}
     .find{border-top:1px solid var(--line);padding:12px 0}
     .find .lvl{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
     .err{border:1px solid var(--seal);background:#c4162a26;color:#fca5a5;border-radius:16px;padding:16px}
@@ -336,16 +333,16 @@
           </a>
         </div>
 
-        <div class="card" style="margin-top:24px;background:linear-gradient(145deg, #141414, #080808);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+        <div class="card" style="margin-top:24px;border-color:rgba(255,106,0,0.3);background:linear-gradient(145deg, #18120d, #080808);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
           <div>
             <div style="display:flex;align-items:center;gap:10px">
-              <span class="chip blue" style="font-size:14px">Interactive Training</span>
+              <span class="chip brand" style="font-size:14px">Interactive Training</span>
               <span class="stamp">World's Fair Special</span>
             </div>
             <h2 style="font-size:28px;margin:6px 0">Guard Arena: Identify The Incident</h2>
             <p class="muted" style="margin:0;font-size:14px;max-width:560px">Train your eye on 8 real-world simulated Solana rug, honeypot, and drainer attacks. Earn certified auditor rank directly on your visual LIVED Card.</p>
           </div>
-          <a class="btn blue" href="#arena" data-go="arena">Enter Arena</a>
+          <a class="btn" href="#arena" data-go="arena">Enter Arena</a>
         </div>
 
         <div class="trust-strip">
@@ -409,8 +406,8 @@
             <h1>Guard Arena</h1>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
-            <div class="stat" style="padding:8px 16px"><b><span id="arena-score">0</span> XP</b><span>Auditor Score</span></div>
-            <div class="stat" style="padding:8px 16px"><b><span id="arena-streak">0</span>x</b><span>Streak</span></div>
+            <div class="stat" style="padding:8px 16px"><b><span id="arena-score" style="color:var(--brand)">0</span> XP</b><span>Auditor Score</span></div>
+            <div class="stat" style="padding:8px 16px"><b><span id="arena-streak" style="color:var(--brand)">0</span>x</b><span>Streak</span></div>
           </div>
         </div>
         <p class="muted" style="margin-top:0;font-size:15px">Analyze simulated on-chain ledgers. Detect honeypots, balance exploits, and malicious authority setups.</p>
@@ -453,7 +450,6 @@
       "11111111111111111111111111111111": "System Program / Burn"
     };
 
-    // 8 Verified Incident Simulation Scenarios
     const ARENA_SCENARIOS = [
       {
         id: 1,
@@ -689,7 +685,7 @@
         const n = Number(intP) + Number(fracP) / (10 ** dec);
         if (!Number.isFinite(n)) return intP.toString();
         if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
-        if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
+        if (n >= 1e6) return (num / 1e6).toFixed(2) + "M";
         if (n >= 1e3) return (num / 1e3).toFixed(2) + "k";
         return n.toLocaleString(undefined, { maximumFractionDigits: 4 });
       } catch {
@@ -1408,7 +1404,7 @@
                 <h3 style="font-size:26px;margin:2px 0 0">${esc(s.title)}</h3>
                 <span class="stamp">${esc(s.mint)}</span>
               </div>
-              <span class="chip" style="font-size:13px">Scenario #${idx + 1}</span>
+              <span class="chip brand" style="font-size:13px">Scenario #${idx + 1}</span>
             </div>
 
             <div class="token-metrics" style="margin-bottom:14px">
@@ -1456,7 +1452,7 @@
                 <h3 style="font-size:26px;margin:2px 0 0">${esc(s.title)}</h3>
                 <span class="stamp">${esc(s.address)}</span>
               </div>
-              <span class="chip blue" style="font-size:13px">Scenario #${idx + 1}</span>
+              <span class="chip" style="font-size:13px">Scenario #${idx + 1}</span>
             </div>
 
             <div class="stats" style="margin-bottom:14px">
@@ -1530,6 +1526,7 @@
 
       debrief.className = `debrief-box show ${isRight ? 'good' : 'bad'}`;
       verdict.textContent = isRight ? "✓ RISK CORRECTLY IDENTIFIED (+100 XP)" : "✗ THREAT OVERLOOKED";
+      verdict.style.color = isRight ? "var(--good)" : "var(--brand)";
       text.textContent = s.explanation;
 
       document.getElementById("arena-next").onclick = () => {
