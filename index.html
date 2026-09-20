@@ -1260,20 +1260,20 @@
 
       ctx.fillStyle = "#ff6a00";
       ctx.textAlign = "center";
-      ctx.font = "700 118px Bebas Neue, Impact, sans-serif";
+      ctx.font = "700 124px Bebas Neue, Impact, sans-serif";
       ctx.fillText("LIVED CARD", w / 2, 520);
 
       ctx.fillStyle = "#f6f1e8";
-      ctx.font = "22px Special Elite, Georgia, serif";
+      ctx.font = "30px Special Elite, Georgia, serif";
       ctx.fillText(p.short.toUpperCase(), w / 2, 570);
 
       ctx.fillStyle = "#c4162a";
-      roundRect(ctx, 160, 620, w - 320, 64, 32);
+      roundRect(ctx, 140, 595, w - 280, 72, 36);
       ctx.fill();
 
       ctx.fillStyle = "#fff";
       ctx.font = "700 28px Bebas Neue, Impact, sans-serif";
-      ctx.fillText((p.tags.join("  ·  ") || "WALLET ACTIVE").toUpperCase(), w / 2, 662);
+      ctx.fillText((p.tags.join("  ·  ") || "WALLET ACTIVE").toUpperCase(), w / 2, 644);
 
       const rows = [
         ["PORTFOLIO", formatUsd(p.totalPortfolioUsd)],
@@ -1285,20 +1285,20 @@
       for (const [k, v] of rows) {
         ctx.textAlign = "left";
         ctx.fillStyle = "#f6f1e8";
-        ctx.font = "22px Special Elite, Georgia, serif";
+        ctx.font = "30px Special Elite, Georgia, serif";
         ctx.fillText(k, 220, y);
 
         ctx.textAlign = "right";
         ctx.fillStyle = "#ff6a00";
-        ctx.font = "700 28px Bebas Neue, Impact, sans-serif";
+        ctx.font = "700 38px Bebas Neue, Impact, sans-serif";
         ctx.fillText(v, w - 220, y);
         y += 72;
       }
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#9c9388";
-      ctx.font = "20px Special Elite, Georgia, serif";
-      ctx.fillText("YOUR WALLET HAS A HISTORY.", w / 2, 1180);
+      ctx.font = "26px Special Elite, Georgia, serif";
+      ctx.fillText("YOUR WALLET HAS A HISTORY.", w / 2, 1190);
 
       return canvas.toDataURL("image/png");
     }
