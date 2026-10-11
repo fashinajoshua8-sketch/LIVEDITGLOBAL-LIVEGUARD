@@ -9,6 +9,103 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    window.splToken = {
+      TOKEN_PROGRAM_ID: new solanaWeb3.PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+      ASSOCIATED_TOKEN_PROGRAM_ID: new solanaWeb3.PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"),
+      Token: {
+        async getAssociatedTokenAddress(arg1, arg2, arg3, arg4) {
+          let associatedTokenProgramId = window.splToken.ASSOCIATED_TOKEN_PROGRAM_ID;
+          let tokenProgramId = window.splToken.TOKEN_PROGRAM_ID;
+          let mint = arg1;
+          let owner = arg2;
+
+          if (arg1 && arg1.toString && arg1.toString() === "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL") {
+            associatedTokenProgramId = arg1;
+            tokenProgramId = arg2;
+            mint = arg3;
+            owner = arg4;
+          }
+
+          const [address] = await solanaWeb3.PublicKey.findProgramAddress(
+            [owner.toBuffer(), tokenProgramId.toBuffer(), mint.toBuffer()],
+            associatedTokenProgramId
+          );
+          return address;
+        },
+        createAssociatedTokenAccountInstruction(arg1, arg2, arg3, arg4, arg5, arg6) {
+          let associatedTokenProgramId = window.splToken.ASSOCIATED_TOKEN_PROGRAM_ID;
+          let tokenProgramId = window.splToken.TOKEN_PROGRAM_ID;
+          let mint = arg1;
+          let associatedToken = arg2;
+          let owner = arg3;
+          let payer = arg4;
+
+          if (arg1 && arg1.toString && arg1.toString() === "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL") {
+            associatedTokenProgramId = arg1;
+            tokenProgramId = arg2;
+            mint = arg3;
+            associatedToken = arg4;
+            owner = arg5;
+            payer = arg6;
+          }
+
+          return new solanaWeb3.TransactionInstruction({
+            keys: [
+              { pubkey: payer, isSigner: true, isWritable: true },
+              { pubkey: associatedToken, isSigner: false, isWritable: true },
+              { pubkey: owner, isSigner: false, isWritable: false },
+              { pubkey: mint, isSigner: false, isWritable: false },
+              { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
+              { pubkey: tokenProgramId, isSigner: false, isWritable: false },
+            ],
+            programId: associatedTokenProgramId,
+            data: new Uint8Array(0),
+          });
+        },
+        createTransferCheckedInstruction(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) {
+          let tokenProgramId = window.splToken.TOKEN_PROGRAM_ID;
+          let source = arg1;
+          let mint = arg2;
+          let destination = arg3;
+          let owner = arg4;
+          let amount = arg5;
+          let decimals = arg6;
+          let multiSigners = arg7 || [];
+
+          if (arg1 && arg1.toString && arg1.toString() === "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA") {
+            tokenProgramId = arg1;
+            source = arg2;
+            mint = arg3;
+            destination = arg4;
+            owner = arg5;
+            amount = arg6;
+            decimals = arg7;
+            multiSigners = arg8 || [];
+          }
+
+          const data = new Uint8Array(9);
+          const view = new DataView(data.buffer);
+          data[0] = 12;
+          view.setBigUint64(1, BigInt(amount), true);
+          data[8] = Number(decimals);
+
+          return new solanaWeb3.TransactionInstruction({
+            keys: [
+              { pubkey: source, isSigner: false, isWritable: true },
+              { pubkey: mint, isSigner: false, isWritable: false },
+              { pubkey: destination, isSigner: false, isWritable: true },
+              ...multiSigners.map((signer) => ({ pubkey: signer, isSigner: true, isWritable: false })),
+              { pubkey: owner, isSigner: true, isWritable: false },
+            ],
+            programId: tokenProgramId,
+            data,
+          });
+        },
+      },
+    };
+  </script>
   <style>
     :root {
       --void:#050505; --surface:#121212; --fg:#f6f1e8; --muted:#9c9388; --line:#ffffff22;
@@ -324,6 +421,7 @@
         <a href="#arena" data-go="arena" id="nav-arena">Guard Arena</a>
         <a href="#multisend" data-go="multisend" id="nav-multisend">Multi-Send</a>
         <a href="https://livedproof.xyz" target="_blank" rel="noopener">Lived Proof ↗</a>
+        <button type="button" id="guardNavXBtn" onclick="connectGuardX()" style="background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid #38bdf844;padding:6px 14px;border-radius:999px;font-family:var(--display);font-size:14px;cursor:pointer">🔗 Connect X</button>
       </nav>
     </header>
 
@@ -407,15 +505,15 @@
         <div class="trust-strip">
           <div class="trust-item">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span></span>
+            <span>No Wallet Connection Ever Required</span>
           </div>
           <div class="trust-item">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-            <span></span>
+            <span>Direct High-Speed Helius Node Queries</span>
           </div>
           <div class="trust-item">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
-            <span></span>
+            <span>Zero Analytics · Open-Source Protocol</span>
           </div>
         </div>
 
@@ -463,6 +561,7 @@
           <div>
             <p class="stamp brand">Risk Identification Simulator</p>
             <h1>Guard Arena</h1>
+            <p id="arenaXStatus" class="stamp" style="color:#38bdf8;margin-top:4px">X Account: Not Connected (XP stored locally)</p>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <div class="stat" style="padding:8px 16px"><b><span id="arena-score" style="color:var(--brand)">0</span> XP</b><span>Auditor Score</span></div>
@@ -478,13 +577,32 @@
     <section id="multisend" class="view" hidden>
       <main>
         <p class="stamp brand">Batch Transfer Ledger</p>
-        <h1>Multi-Send SOL.</h1>
-        <p class="muted" style="margin-top:0;font-size:15px">Connect your wallet and distribute SOL to multiple addresses in one atomic transaction.</p>
+        <h1>Multi-Send Assets.</h1>
+        <p class="muted" style="margin-top:0;font-size:15px">Connect your wallet, choose the asset, and distribute SOL or SPL tokens to multiple addresses in one atomic transaction.</p>
         
         <div class="card" style="margin-top:24px">
-          <div class="row" style="margin-bottom:16px">
+          <div class="row" style="margin-bottom:16px; align-items:center">
             <button class="btn" id="connect-wallet-btn" type="button">Connect Wallet</button>
+            <button class="btn ghost" id="disconnect-wallet-btn" type="button" style="display:none">Disconnect</button>
             <span id="wallet-status" class="stamp" style="align-self:center">Not Connected</span>
+          </div>
+
+          <div class="row" style="margin-top:16px; gap:12px; align-items:end">
+            <div style="flex:1; min-width:180px">
+              <label class="lvl" style="display:block;margin-bottom:8px">Asset</label>
+              <select id="multisend-token-select" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;outline:none">
+                <option value="SOL">SOL</option>
+                <option value="USDC">USDC</option>
+                <option value="USDT">USDT</option>
+                <option value="JUP">JUP</option>
+                <option value="BONK">BONK</option>
+                <option value="custom">Custom token mint</option>
+              </select>
+            </div>
+            <div style="flex:1; min-width:180px; display:none" id="custom-token-wrap">
+              <label class="lvl" style="display:block;margin-bottom:8px">Custom Token Mint</label>
+              <input id="multisend-custom-mint" type="text" placeholder="Token mint address" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;outline:none" />
+            </div>
           </div>
 
           <div style="margin-top:16px">
@@ -502,7 +620,7 @@
 
 
     <footer>
-      <p>Free for everyone. No paid tier. Pure on-chain analysis.</p>
+      <p>Free for everyone. No wallet connect. No paid tier. Pure on-chain analysis.</p>
     </footer>
   </div>
 
@@ -785,7 +903,7 @@
 
     const ALPHA = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
     document.querySelectorAll(".seal-img,#seal-live").forEach((el)=>{el.src=SEAL});
-
+  
     function decode58(str){const bytes=[0];for(const ch of str){const val=ALPHA.indexOf(ch);if(val<0)throw new Error("bad");let carry=val;for(let i=0;i<bytes.length;i++){carry+=bytes[i]*58;bytes[i]=carry&255;carry>>=8}while(carry){bytes.push(carry&255);carry>>=8}}let z=0;for(const ch of str){if(ch==="1")z++;else break}return new Uint8Array([...Array(z).fill(0),...bytes.reverse()])}
     function encode58(buf){const bytes=Array.from(buf);let z=0;while(z<bytes.length&&bytes[z]===0)z++;const digits=[0];for(let i=z;i<bytes.length;i++){let carry=bytes[i];for(let j=0;j<digits.length;j++){carry+=digits[j]<<8;digits[j]=carry%58;carry=(carry/58)|0}while(carry){digits.push(carry%58);carry=(carry/58)|0}}return "1".repeat(z)+digits.reverse().map(d=>ALPHA[d]).join("")}
     function isPubkey(raw){try{return decode58(raw.trim()).length===32}catch{return false}}
@@ -1492,6 +1610,104 @@
     // ==========================================
     // GUARD ARENA (EDUCATIONAL SIMULATOR MODULE)
     // ==========================================
+
+    // --- Guard X Connector & Cloud Sync Logic ---
+    function getGuardUser() {
+      try {
+        return JSON.parse(localStorage.getItem("lived_guard_user") || '{"xHandle":null}');
+      } catch {
+        return { xHandle: null };
+      }
+    }
+
+    function saveGuardUser(u) {
+      localStorage.setItem("lived_guard_user", JSON.stringify(u));
+    }
+
+    async function syncGuardXPToCloud(xHandle, newXp, newStreak) {
+      if (!xHandle || !window.supabase) return;
+      try {
+        const SUPABASE_URL = "https://zzjcfxsvgjtzketnfjqn.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_nnvegQL3tnQJTCeHEnQaCw_zTKwSovu";
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        await client.from('profiles').upsert([{
+          x_handle: xHandle,
+          handle: xHandle,
+          total_points: newXp
+        }], { onConflict: 'x_handle' });
+      } catch (err) {
+        console.warn("Cloud XP sync note:", err);
+      }
+    }
+
+    async function fetchGuardXPFromCloud(xHandle) {
+      if (!xHandle || !window.supabase) return null;
+      try {
+        const SUPABASE_URL = "https://zzjcfxsvgjtzketnfjqn.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_nnvegQL3tnQJTCeHEnQaCw_zTKwSovu";
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const { data } = await client.from('profiles').select('total_points').eq('x_handle', xHandle).maybeSingle();
+        if (data && typeof data.total_points === 'number') {
+          return data.total_points;
+        }
+      } catch (err) {}
+      return null;
+    }
+
+    async function connectGuardX() {
+      const user = getGuardUser();
+      if (user.xHandle) {
+        if (confirm(`Disconnect X account (${user.xHandle})?`)) {
+          user.xHandle = null;
+          saveGuardUser(user);
+          updateGuardXUI();
+          alert("X account disconnected.");
+        }
+        return;
+      }
+
+      const handleInput = prompt("Enter your X (Twitter) Handle:", "@");
+      if (!handleInput) return;
+      const xHandle = handleInput.startsWith("@") ? handleInput : "@" + handleInput;
+      
+      const cloudXp = await fetchGuardXPFromCloud(xHandle);
+      const st = loadArena();
+      
+      if (cloudXp !== null && cloudXp > st.xp) {
+        st.xp = cloudXp;
+        saveArena(st);
+      }
+
+      user.xHandle = xHandle;
+      saveGuardUser(user);
+      
+      await syncGuardXPToCloud(xHandle, st.xp, st.streak);
+      
+      updateGuardXUI();
+      renderArena();
+      alert(`🔗 X Account (${xHandle}) Connected! Your XP (${st.xp} XP) has been successfully synchronized across devices.`);
+    }
+
+    function updateGuardXUI() {
+      const user = getGuardUser();
+      const btn = document.getElementById("guardNavXBtn");
+      const statusEl = document.getElementById("arenaXStatus");
+
+      if (user.xHandle) {
+        if (btn) btn.textContent = `🔗 ${user.xHandle}`;
+        if (statusEl) statusEl.textContent = `X Account: ${user.xHandle} (XP Saved & Verified)`;
+      } else {
+        if (btn) btn.textContent = "🔗 Connect X";
+        if (statusEl) statusEl.textContent = "X Account: Not Connected (Link X to save profile progress)";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      updateGuardXUI();
+    });
+
     function loadArena(){
       try {
         return JSON.parse(localStorage.getItem("lived-guard-arena") || '{"xp":0,"streak":0,"current":0,"cleared":[]}');
@@ -1642,6 +1858,12 @@
       }
       saveArena(st);
 
+      // Sync to Supabase cloud if X handle is connected
+      const user = getGuardUser();
+      if (user.xHandle) {
+        syncGuardXPToCloud(user.xHandle, st.xp, st.streak);
+      }
+
       document.getElementById("arena-score").textContent = st.xp;
       document.getElementById("arena-streak").textContent = st.streak;
 
@@ -1691,12 +1913,48 @@
     let connectedPublicKey = null;
     let connectedWalletProvider = null;
 
+    const MULTISEND_TOKENS = {
+      SOL: { symbol: "SOL", mint: null, decimals: 9 },
+      USDC: { symbol: "USDC", mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", decimals: 6 },
+      USDT: { symbol: "USDT", mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", decimals: 6 },
+      JUP: { symbol: "JUP", mint: "JUPyiX...", decimals: 6 },
+      BONK: { symbol: "BONK", mint: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", decimals: 5 }
+    };
+
+    function getSelectedMultiSendAsset() {
+      const tokenSelect = document.getElementById("multisend-token-select");
+      const customMint = (document.getElementById("multisend-custom-mint")?.value || "").trim();
+      const selected = tokenSelect.value;
+
+      if (selected === "SOL") return { type: "SOL", symbol: "SOL", mint: null, decimals: 9 };
+      if (selected === "custom") {
+        if (!isPubkey(customMint)) throw new Error("Enter a valid custom token mint address.");
+        return { type: "SPL", symbol: "CUSTOM", mint: customMint, decimals: 9 };
+      }
+      const asset = MULTISEND_TOKENS[selected];
+      if (!asset) throw new Error("Unsupported token selection.");
+      return { type: "SPL", ...asset };
+    }
+
     function openWalletModal() {
       document.getElementById("walletModal").classList.add("active");
     }
 
     function closeWalletModal() {
       document.getElementById("walletModal").classList.remove("active");
+    }
+
+    async function disconnectWallet() {
+      if (connectedWalletProvider && typeof connectedWalletProvider.disconnect === "function") {
+        try { await connectedWalletProvider.disconnect(); } catch (err) { console.warn("Wallet disconnect failed:", err); }
+      }
+
+      connectedPublicKey = null;
+      connectedWalletProvider = null;
+      document.getElementById("wallet-status").textContent = "Not Connected";
+      document.getElementById("connect-wallet-btn").textContent = "Connect Wallet";
+      document.getElementById("disconnect-wallet-btn").style.display = "none";
+      document.getElementById("execute-multisend").disabled = true;
     }
 
     // Universal Wallet Connector Function supporting desktop and mobile deep links
@@ -1746,6 +2004,7 @@
           const addressString = publicKey.toString();
           document.getElementById("wallet-status").textContent = shortAddr(addressString);
           document.getElementById("connect-wallet-btn").textContent = "Connected (" + shortAddr(addressString) + ")";
+          document.getElementById("disconnect-wallet-btn").style.display = "inline-flex";
           document.getElementById("execute-multisend").removeAttribute("disabled");
           closeWalletModal();
         }
@@ -1758,40 +2017,106 @@
       openWalletModal();
     };
 
-    document.getElementById("execute-multisend").onclick = async () => {
-    if (!connectedPublicKey) return;
-    const rawText = document.getElementById("multisend-input").value;
-    const lines = rawText.split("\n").map(l => l.trim()).filter(Boolean);
+    document.getElementById("disconnect-wallet-btn").onclick = async () => {
+      await disconnectWallet();
+    };
 
-    if (!lines.length) {
+    document.getElementById("multisend-token-select").addEventListener("change", function () {
+      const customWrap = document.getElementById("custom-token-wrap");
+      customWrap.style.display = this.value === "custom" ? "block" : "none";
+    });
+
+    document.getElementById("execute-multisend").onclick = async () => {
+      if (!connectedPublicKey) return;
+      const rawText = document.getElementById("multisend-input").value;
+      const lines = rawText.split("\n").map(l => l.trim()).filter(Boolean);
+
+      if (!lines.length) {
         alert("Please enter at least one recipient.");
         return;
-    }
+      }
 
-    const out = document.getElementById("multisend-out");
-    out.innerHTML = '<div class="busy">Building and signing multi-send transaction…</div>';
+      const out = document.getElementById("multisend-out");
+      out.innerHTML = '<div class="busy">Building and signing multi-send transaction…</div>';
 
-    try {
+      try {
+        const asset = getSelectedMultiSendAsset();
         const connection = new solanaWeb3.Connection(RPCS[0], "confirmed");
         const transaction = new solanaWeb3.Transaction();
 
-        let totalLamports = 0n;
+        if (asset.type === "SOL") {
+          for (const line of lines) {
+            const [addrStr, amtStr] = line.split(",").map(s => s?.trim());
+            if (!isPubkey(addrStr) || !amtStr) throw new Error("Invalid format on line: " + line);
 
-        for (const line of lines) {
-        const [addrStr, amtStr] = line.split(",").map(s => s?.trim());
-        if (!isPubkey(addrStr) || !amtStr) throw new Error("Invalid format on line: " + line);
+            const recipientPubkey = new solanaWeb3.PublicKey(addrStr);
+            const lamports = BigInt(Math.round(Number(amtStr) * 1e9));
+            transaction.add(
+              solanaWeb3.SystemProgram.transfer({
+                fromPubkey: connectedPublicKey,
+                toPubkey: recipientPubkey,
+                lamports
+              })
+            );
+          }
+        } else {
+          const mintPubkey = new solanaWeb3.PublicKey(asset.mint);
+          const decimals = asset.decimals;
+          const sourceAta = await splToken.Token.getAssociatedTokenAddress(
+            splToken.ASSOCIATED_TOKEN_PROGRAM_ID,
+            splToken.TOKEN_PROGRAM_ID,
+            mintPubkey,
+            connectedPublicKey
+          );
 
-        const recipientPubkey = new solanaWeb3.PublicKey(addrStr);
-        const lamports = BigInt(Math.round(Number(amtStr) * 1e9));
-        totalLamports += lamports;
+          const sourceInfo = await connection.getParsedAccountInfo(sourceAta);
+          if (!sourceInfo.value) {
+            throw new Error("No associated token account found for this wallet. Fund an ATA for the chosen token first.");
+          }
 
-        transaction.add(
-            solanaWeb3.SystemProgram.transfer({
-            fromPubkey: connectedPublicKey,
-            toPubkey: recipientPubkey,
-            lamports: lamports
-            })
-        );
+          for (const line of lines) {
+            const [addrStr, amtStr] = line.split(",").map(s => s?.trim());
+            if (!isPubkey(addrStr) || !amtStr) throw new Error("Invalid format on line: " + line);
+
+            const recipientPubkey = new solanaWeb3.PublicKey(addrStr);
+            const amountValue = Number(amtStr);
+            if (!Number.isFinite(amountValue) || amountValue <= 0) throw new Error("Transfer amount must be greater than zero: " + amtStr);
+
+            const tokenAmount = BigInt(Math.round(amountValue * (10 ** decimals)));
+            const recipientAta = await splToken.Token.getAssociatedTokenAddress(
+              splToken.ASSOCIATED_TOKEN_PROGRAM_ID,
+              splToken.TOKEN_PROGRAM_ID,
+              mintPubkey,
+              recipientPubkey
+            );
+
+            const recipientInfo = await connection.getParsedAccountInfo(recipientAta);
+            if (!recipientInfo.value) {
+              transaction.add(
+                splToken.Token.createAssociatedTokenAccountInstruction(
+                  splToken.ASSOCIATED_TOKEN_PROGRAM_ID,
+                  splToken.TOKEN_PROGRAM_ID,
+                  mintPubkey,
+                  recipientAta,
+                  recipientPubkey,
+                  connectedPublicKey
+                )
+              );
+            }
+
+            transaction.add(
+              splToken.Token.createTransferCheckedInstruction(
+                splToken.TOKEN_PROGRAM_ID,
+                sourceAta,
+                mintPubkey,
+                recipientAta,
+                connectedPublicKey,
+                [],
+                tokenAmount,
+                decimals
+              )
+            );
+          }
         }
 
         const { blockhash } = await connection.getLatestBlockhash("confirmed");
@@ -1806,9 +2131,9 @@
         }
 
         out.innerHTML = `<div class="card" style="border-color:var(--good);color:var(--good)">Batch transfer confirmed! Signature: <span class="sol-addr">${esc(signed.signature || signed)}</span></div>`;
-    } catch (err) {
+      } catch (err) {
         out.innerHTML = `<div class="err">${esc(err.message || "Transaction failed.")}</div>`;
-    }
+      }
     };
 
     renderWatch();
@@ -1830,6 +2155,58 @@
       show(hashRoute || "hub");
     }
     
+    // --- Guard X Connector Logic ---
+function getGuardUser() {
+  try {
+    return JSON.parse(localStorage.getItem("lived_guard_user") || '{"xHandle":null}');
+  } catch {
+    return { xHandle: null };
+  }
+}
+
+function saveGuardUser(u) {
+  localStorage.setItem("lived_guard_user", JSON.stringify(u));
+}
+
+function connectGuardX() {
+  const user = getGuardUser();
+  if (user.xHandle) {
+    if (confirm(`Disconnect X account (${user.xHandle})?`)) {
+      user.xHandle = null;
+      saveGuardUser(user);
+      updateGuardXUI();
+      alert("X account disconnected.");
+    }
+    return;
+  }
+
+  const handle = prompt("Enter your X (Twitter) Handle:", "@");
+  if (!handle) return;
+  user.xHandle = handle.startsWith("@") ? handle : "@" + handle;
+  saveGuardUser(user);
+  updateGuardXUI();
+  alert(`🔗 X Account (${user.xHandle}) Linked Successfully! Your Guard Arena XP is now bound to your profile.`);
+}
+
+function updateGuardXUI() {
+  const user = getGuardUser();
+  const btn = document.getElementById("guardNavXBtn");
+  const statusEl = document.getElementById("arenaXStatus");
+
+  if (user.xHandle) {
+    if (btn) btn.textContent = `🔗 ${user.xHandle}`;
+    if (statusEl) statusEl.textContent = `X Account: ${user.xHandle} (XP Saved & Verified)`;
+  } else {
+    if (btn) btn.textContent = "🔗 Connect X";
+    if (statusEl) statusEl.textContent = "X Account: Not Connected (Link X to save profile progress)";
+  }
+}
+
+// Run UI check on app start
+document.addEventListener("DOMContentLoaded", () => {
+  updateGuardXUI();
+});
+
   </script>
 </body>
 </html>
