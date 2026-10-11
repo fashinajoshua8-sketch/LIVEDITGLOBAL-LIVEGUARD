@@ -421,7 +421,7 @@
         <a href="#arena" data-go="arena" id="nav-arena">Guard Arena</a>
         <a href="#multisend" data-go="multisend" id="nav-multisend">Multi-Send</a>
         <a href="https://livedproof.xyz" target="_blank" rel="noopener">Lived Proof ↗</a>
-        <button type="button" id="guardNavXBtn" onclick="connectGuardX()" style="background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid #38bdf844;padding:6px 14px;border-radius:999px;font-family:var(--display);font-size:14px;cursor:pointer">🔗 Connect X</button>
+        <button type="button" id="guardNavXBtn" onclick="connectGuardXLive()" style="background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid #38bdf844;padding:6px 14px;border-radius:999px;font-family:var(--display);font-size:14px;cursor:pointer">🔗 Connect X</button>
       </nav>
     </header>
 
@@ -2156,6 +2156,112 @@
     }
     
     // --- Guard X Connector Logic ---
+// --- Lived Guard Live X OAuth & Card Sync Fix ---
+
+function generateGuardCodeVerifier() {
+  const array = new Uint8Array(32);
+  window.crypto.getRandomValues(array);
+  return btoa(String.fromCharCode.apply(null, array))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function generateGuardCodeChallenge(verifier) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const digest = await window.crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function connectGuardXLive() {
+  const user = getGuardUser();
+  if (user.xHandle) {
+    if (confirm(`Disconnect X account (${user.xHandle})?`)) {
+      user.xHandle = null;
+      saveGuardUser(user);
+      updateGuardXUI();
+      // Sync disconnection to cloud profile if Supabase is available
+      if (window.supabase) {
+        const client = window.supabase.createClient("https://zzjcfxsvgjtzketnfjqn.supabase.co", "sb_publishable_nnvegQL3tnQJTCeHEnQaCw_zTKwSovu");
+        await client.from('profiles').update({ x_handle: null }).eq('x_handle', user.xHandle);
+      }
+      alert("X account successfully disconnected.");
+    }
+    return;
+  }
+
+  const clientId = "cktsY045MnNIajZGU0JIQTBaRlQ6MTpjaQ"; 
+  const redirectUri = window.location.origin + window.location.pathname;
+  const verifier = generateGuardCodeVerifier();
+  const challenge = await generateGuardCodeChallenge(verifier);
+  
+  localStorage.setItem("guard_x_code_verifier", verifier);
+  localStorage.setItem("guard_x_redirect_uri", redirectUri);
+  
+  const scope = "tweet.read users.read offline.access";
+  const state = Math.random().toString(36).substring(7);
+  localStorage.setItem("guard_x_oauth_state", state);
+  
+  const authUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
+  
+  window.location.href = authUrl;
+}
+
+async function handleGuardXOAuthCallback() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+  const state = urlParams.get('state');
+  
+  if (!code) return;
+  
+  window.history.replaceState({}, document.title, window.location.pathname);
+  
+  const savedState = localStorage.getItem("guard_x_oauth_state");
+  const codeVerifier = localStorage.getItem("guard_x_code_verifier");
+  const redirectUri = localStorage.getItem("guard_x_redirect_uri");
+  
+  if (state !== savedState || !codeVerifier) return;
+
+  try {
+    alert("🔄 Authenticating with X...");
+    const SUPABASE_URL = "https://zzjcfxsvgjtzketnfjqn.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_nnvegQL3tnQJTCeHEnQaCw_zTKwSovu";
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    const { data, error } = await client.functions.invoke('x-auth-callback', {
+      body: { code, codeVerifier, redirectUri }
+    });
+
+    if (error || (data && data.error)) {
+      throw new Error(data?.error || error?.message || "Token exchange failed");
+    }
+
+    if (data && data.username) {
+      const xHandle = "@" + data.username;
+      const user = getGuardUser();
+      user.xHandle = xHandle;
+      saveGuardUser(user);
+
+      // Sync immediately to Supabase profiles table so it reflects globally on cards
+      const st = loadArena();
+      await client.from('profiles').upsert([{
+        x_handle: xHandle,
+        handle: xHandle,
+        total_points: st.xp
+      }], { onConflict: 'x_handle' });
+
+      updateGuardXUI();
+      alert(`🎉 Successfully connected X account: ${xHandle}`);
+    }
+  } catch (err) {
+    alert("❌ X Authentication Error: " + err.message);
+  } finally {
+    localStorage.removeItem("guard_x_code_verifier");
+    localStorage.removeItem("guard_x_oauth_state");
+    localStorage.removeItem("guard_x_redirect_uri");
+  }
+}
+
 function getGuardUser() {
   try {
     return JSON.parse(localStorage.getItem("lived_guard_user") || '{"xHandle":null}');
@@ -2168,26 +2274,6 @@ function saveGuardUser(u) {
   localStorage.setItem("lived_guard_user", JSON.stringify(u));
 }
 
-function connectGuardX() {
-  const user = getGuardUser();
-  if (user.xHandle) {
-    if (confirm(`Disconnect X account (${user.xHandle})?`)) {
-      user.xHandle = null;
-      saveGuardUser(user);
-      updateGuardXUI();
-      alert("X account disconnected.");
-    }
-    return;
-  }
-
-  const handle = prompt("Enter your X (Twitter) Handle:", "@");
-  if (!handle) return;
-  user.xHandle = handle.startsWith("@") ? handle : "@" + handle;
-  saveGuardUser(user);
-  updateGuardXUI();
-  alert(`🔗 X Account (${user.xHandle}) Linked Successfully! Your Guard Arena XP is now bound to your profile.`);
-}
-
 function updateGuardXUI() {
   const user = getGuardUser();
   const btn = document.getElementById("guardNavXBtn");
@@ -2195,15 +2281,16 @@ function updateGuardXUI() {
 
   if (user.xHandle) {
     if (btn) btn.textContent = `🔗 ${user.xHandle}`;
-    if (statusEl) statusEl.textContent = `X Account: ${user.xHandle} (XP Saved & Verified)`;
+    if (statusEl) statusEl.textContent = `X Account: ${user.xHandle} (Live OAuth Verified)`;
   } else {
     if (btn) btn.textContent = "🔗 Connect X";
-    if (statusEl) statusEl.textContent = "X Account: Not Connected (Link X to save profile progress)";
+    if (statusEl) statusEl.textContent = "X Account: Not Connected";
   }
 }
 
-// Run UI check on app start
-document.addEventListener("DOMContentLoaded", () => {
+// Hook into app initialization to check for OAuth callback on load
+document.addEventListener("DOMContentLoaded", async () => {
+  await handleGuardXOAuthCallback();
   updateGuardXUI();
 });
 
