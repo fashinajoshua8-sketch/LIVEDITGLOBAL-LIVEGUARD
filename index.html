@@ -400,6 +400,29 @@
       height: 24px;
       object-fit: contain;
     }
+
+        /* Ensure the main app wrap is visible when active */
+    .wrap {
+    display: block;
+    }
+
+    /* Handle view section visibility toggling */
+    .view {
+    display: none;
+    }
+
+    .view:not([hidden]) {
+    display: block;
+    }
+
+    /* Splash screen visibility override */
+    .splash {
+    display: none;
+    }
+
+    .splash.on {
+    display: flex;
+    }
   </style>
 </head>
 <body>
@@ -538,6 +561,57 @@
       </main>
     </section>
 
+    <section id="token" class="view" hidden>
+      <main>
+        <p class="stamp brand">Token analysis</p>
+        <h1>Read the mint.</h1>
+        <form class="scan" id="token-form">
+          <div class="search-wrap">
+            <input id="token-input" type="text" placeholder="Token mint address" spellcheck="false" autocomplete="off" />
+            <button class="clear-input" id="clear-token" type="button" aria-label="Clear token address" title="Clear">×</button>
+          </div>
+          <button class="btn" type="submit">Scan token</button>
+        </form>
+        <p><button class="btn ghost" type="button" id="scan-lived">Scan $LIVED</button></p>
+        <div id="token-out" style="margin-top:28px"></div>
+        <div id="token-watch"></div>
+      </main>
+    </section>
+
+    <section id="wallet" class="view" hidden>
+      <main>
+        <p class="stamp brand">Wallet analysis</p>
+        <h1>Print the card.</h1>
+        <form class="scan" id="wallet-form">
+          <div class="search-wrap">
+            <input id="wallet-input" type="text" placeholder="Wallet address" spellcheck="false" autocomplete="off" />
+            <button class="clear-input" id="clear-wallet" type="button" aria-label="Clear wallet address" title="Clear">×</button>
+          </div>
+          <button class="btn" type="submit">Watch wallet</button>
+        </form>
+        <div id="wallet-out" style="margin-top:28px"></div>
+        <div id="wallet-watch"></div>
+      </main>
+    </section>
+
+    <section id="arena" class="view" hidden>
+      <main>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
+          <div>
+            <p class="stamp brand">Risk Identification Simulator</p>
+            <h1>Guard Arena</h1>
+            <p id="arenaXStatus" class="stamp" style="color:#38bdf8;margin-top:4px">X Account: Not Connected (XP stored locally)</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="stat" style="padding:8px 16px"><b><span id="arena-score" style="color:var(--brand)">0</span> XP</b><span>Auditor Score</span></div>
+            <div class="stat" style="padding:8px 16px"><b><span id="arena-streak" style="color:var(--brand)">0</span>x</b><span>Streak</span></div>
+          </div>
+        </div>
+        <p class="muted" style="margin-top:0;font-size:15px">Analyze simulated on-chain ledgers. Detect honeypots, balance exploits, and malicious authority setups.</p>
+        <div id="arena-screen" style="margin-top:28px"></div>
+      </main>
+    </section>
+
     <section id="multisend" class="view" hidden>
       <main>
         <p class="stamp brand">Batch Transfer Ledger</p>
@@ -615,7 +689,6 @@
         </div>
       </main>
     </section>
-
 
     <footer>
       <p>Free for everyone. No paid tier. Pure on-chain analysis.</p>
@@ -1300,7 +1373,7 @@
       block("wallet",document.getElementById("wallet-watch"));
     }
 
-function show(name){
+    function show(name){
       const target = ["hub","token","wallet","arena","multisend"].includes(name) ? name : "hub";
       const splash = document.getElementById("splash");
       const app = document.getElementById("app");
@@ -2028,116 +2101,6 @@ function show(name){
       customWrap.style.display = this.value === "custom" ? "block" : "none";
     });
 
-    document.getElementById("execute-multisend").onclick = async () => {
-      if (!connectedPublicKey) return;
-      const rawText = document.getElementById("multisend-input").value;
-      const lines = rawText.split("\n").map(l => l.trim()).filter(Boolean);
-
-      if (!lines.length) {
-        alert("Please enter at least one recipient.");
-        return;
-      }
-
-      const out = document.getElementById("multisend-out");
-      out.innerHTML = '<div class="busy">Building and signing multi-send transaction…</div>';
-
-      try {
-        const asset = getSelectedMultiSendAsset();
-        const connection = new solanaWeb3.Connection(RPCS[0], "confirmed");
-        const transaction = new solanaWeb3.Transaction();
-
-        if (asset.type === "SOL") {
-          for (const line of lines) {
-            const [addrStr, amtStr] = line.split(",").map(s => s?.trim());
-            if (!isPubkey(addrStr) || !amtStr) throw new Error("Invalid format on line: " + line);
-
-            const recipientPubkey = new solanaWeb3.PublicKey(addrStr);
-            const lamports = BigInt(Math.round(Number(amtStr) * 1e9));
-            transaction.add(
-              solanaWeb3.SystemProgram.transfer({
-                fromPubkey: connectedPublicKey,
-                toPubkey: recipientPubkey,
-                lamports
-              })
-            );
-          }
-        } else {
-          const mintPubkey = new solanaWeb3.PublicKey(asset.mint);
-          const decimals = asset.decimals;
-          const sourceAta = await splToken.Token.getAssociatedTokenAddress(
-            splToken.ASSOCIATED_TOKEN_PROGRAM_ID,
-            splToken.TOKEN_PROGRAM_ID,
-            mintPubkey,
-            connectedPublicKey
-          );
-
-          const sourceInfo = await connection.getParsedAccountInfo(sourceAta);
-          if (!sourceInfo.value) {
-            throw new Error("No associated token account found for this wallet. Fund an ATA for the chosen token first.");
-          }
-
-          for (const line of lines) {
-            const [addrStr, amtStr] = line.split(",").map(s => s?.trim());
-            if (!isPubkey(addrStr) || !amtStr) throw new Error("Invalid format on line: " + line);
-
-            const recipientPubkey = new solanaWeb3.PublicKey(addrStr);
-            const amountValue = Number(amtStr);
-            if (!Number.isFinite(amountValue) || amountValue <= 0) throw new Error("Transfer amount must be greater than zero: " + amtStr);
-
-            const tokenAmount = BigInt(Math.round(amountValue * (10 ** decimals)));
-            const recipientAta = await splToken.Token.getAssociatedTokenAddress(
-              splToken.ASSOCIATED_TOKEN_PROGRAM_ID,
-              splToken.TOKEN_PROGRAM_ID,
-              mintPubkey,
-              recipientPubkey
-            );
-
-            const recipientInfo = await connection.getParsedAccountInfo(recipientAta);
-            if (!recipientInfo.value) {
-              transaction.add(
-                splToken.Token.createAssociatedTokenAccountInstruction(
-                  splToken.ASSOCIATED_TOKEN_PROGRAM_ID,
-                  splToken.TOKEN_PROGRAM_ID,
-                  mintPubkey,
-                  recipientAta,
-                  recipientPubkey,
-                  connectedPublicKey
-                )
-              );
-            }
-
-            transaction.add(
-              splToken.Token.createTransferCheckedInstruction(
-                splToken.TOKEN_PROGRAM_ID,
-                sourceAta,
-                mintPubkey,
-                recipientAta,
-                connectedPublicKey,
-                [],
-                tokenAmount,
-                decimals
-              )
-            );
-          }
-        }
-
-        const { blockhash } = await connection.getLatestBlockhash("confirmed");
-        transaction.recentBlockhash = blockhash;
-        transaction.feePayer = connectedPublicKey;
-
-        let signed;
-        if (connectedWalletProvider && typeof connectedWalletProvider.signAndSendTransaction === 'function') {
-          signed = await connectedWalletProvider.signAndSendTransaction(transaction);
-        } else {
-          throw new Error("No active wallet provider available to sign transaction.");
-        }
-
-        out.innerHTML = `<div class="card" style="border-color:var(--good);color:var(--good)">Batch transfer confirmed! Signature: <span class="sol-addr">${esc(signed.signature || signed)}</span></div>`;
-      } catch (err) {
-        out.innerHTML = `<div class="err">${esc(err.message || "Transaction failed.")}</div>`;
-      }
-    };
-
     renderWatch();
 
     document.querySelectorAll('a.door').forEach(card => {
@@ -2152,226 +2115,194 @@ function show(name){
       });
     });
 
-    const hashRoute = location.hash.replace("#","");
-    if(sessionStorage.getItem("lived-guard-entered")==="1" || hashRoute){
-      show(hashRoute || "hub");
-    }
+    // Reliable Initial View Route on Load
+    window.addEventListener("DOMContentLoaded", () => {
+      const hashRoute = location.hash.replace("#","");
+      if (sessionStorage.getItem("lived-guard-entered") === "1" || hashRoute) {
+        show(hashRoute || "hub");
+      } else {
+        show("hub");
+      }
+    });
     
     // --- Guard X Connector Logic ---
-// --- Lived Guard Live X OAuth & Card Sync Fix ---
-
-function generateGuardCodeVerifier() {
-  const array = new Uint8Array(32);
-  window.crypto.getRandomValues(array);
-  return btoa(String.fromCharCode.apply(null, array))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-async function generateGuardCodeChallenge(verifier) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(verifier);
-  const digest = await window.crypto.subtle.digest('SHA-256', data);
-  return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-async function connectGuardXLive() {
-  const user = getGuardUser();
-  if (user.xHandle) {
-    if (confirm(`Disconnect X account (${user.xHandle})?`)) {
-      user.xHandle = null;
-      saveGuardUser(user);
-      updateGuardXUI();
-      // Sync disconnection to cloud profile if Supabase is available
-      if (window.supabase) {
-        const client = window.supabase.createClient("https://zzjcfxsvgjtzketnfjqn.supabase.co", "sb_publishable_nnvegQL3tnQJTCeHEnQaCw_zTKwSovu");
-        await client.from('profiles').update({ x_handle: null }).eq('x_handle', user.xHandle);
-      }
-      alert("X account successfully disconnected.");
-    }
-    return;
-  }
-
-  const clientId = "cktsY045MnNIajZGU0JIQTBaRlQ6MTpjaQ"; 
-  const redirectUri = window.location.origin + window.location.pathname;
-  const verifier = generateGuardCodeVerifier();
-  const challenge = await generateGuardCodeChallenge(verifier);
-  
-  localStorage.setItem("guard_x_code_verifier", verifier);
-  localStorage.setItem("guard_x_redirect_uri", redirectUri);
-  
-  const scope = "tweet.read users.read offline.access";
-  const state = Math.random().toString(36).substring(7);
-  localStorage.setItem("guard_x_oauth_state", state);
-  
-  const authUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
-  
-  window.location.href = authUrl;
-}
-
-async function handleGuardXOAuthCallback() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const code = urlParams.get('code');
-  const state = urlParams.get('state');
-  
-  if (!code) return;
-  
-  window.history.replaceState({}, document.title, window.location.pathname);
-  
-  const savedState = localStorage.getItem("guard_x_oauth_state");
-  const codeVerifier = localStorage.getItem("guard_x_code_verifier");
-  const redirectUri = localStorage.getItem("guard_x_redirect_uri");
-  
-  if (state !== savedState || !codeVerifier) return;
-
-  try {
-    alert("🔄 Authenticating with X...");
-    const SUPABASE_URL = "https://zzjcfxsvgjtzketnfjqn.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_nnvegQL3tnQJTCeHEnQaCw_zTKwSovu";
-    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    const { data, error } = await client.functions.invoke('x-auth-callback', {
-      body: { code, codeVerifier, redirectUri }
-    });
-
-    if (error || (data && data.error)) {
-      throw new Error(data?.error || error?.message || "Token exchange failed");
+    function generateGuardCodeVerifier() {
+      const array = new Uint8Array(32);
+      window.crypto.getRandomValues(array);
+      return btoa(String.fromCharCode.apply(null, array))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     }
 
-    if (data && data.username) {
-      const xHandle = "@" + data.username;
+    async function generateGuardCodeChallenge(verifier) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(verifier);
+      const digest = await window.crypto.subtle.digest('SHA-256', data);
+      return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    async function connectGuardXLive() {
       const user = getGuardUser();
-      user.xHandle = xHandle;
-      saveGuardUser(user);
+      if (user.xHandle) {
+        if (confirm(`Disconnect X account (${user.xHandle})?`)) {
+          user.xHandle = null;
+          saveGuardUser(user);
+          updateGuardXUI();
+          if (window.supabase) {
+            const client = window.supabase.createClient("https://zzjcfxsvgjtzketnfjqn.supabase.co", "sb_publishable_nnvegQL3tnQJTCeHEnQaCw_zTKwSovu");
+            await client.from('profiles').update({ x_handle: null }).eq('x_handle', user.xHandle);
+          }
+          alert("X account successfully disconnected.");
+        }
+        return;
+      }
 
-      // Sync immediately to Supabase profiles table so it reflects globally on cards
-      const st = loadArena();
-      await client.from('profiles').upsert([{
-        x_handle: xHandle,
-        handle: xHandle,
-        total_points: st.xp
-      }], { onConflict: 'x_handle' });
-
-      updateGuardXUI();
-      alert(`🎉 Successfully connected X account: ${xHandle}`);
+      const clientId = "cktsY045MnNIajZGU0JIQTBaRlQ6MTpjaQ"; 
+      const redirectUri = window.location.origin + window.location.pathname;
+      const verifier = generateGuardCodeVerifier();
+      const challenge = await generateGuardCodeChallenge(verifier);
+      
+      localStorage.setItem("guard_x_code_verifier", verifier);
+      localStorage.setItem("guard_x_redirect_uri", redirectUri);
+      
+      const scope = "tweet.read users.read offline.access";
+      const state = Math.random().toString(36).substring(7);
+      localStorage.setItem("guard_x_oauth_state", state);
+      
+      const authUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
+      
+      window.location.href = authUrl;
     }
-  } catch (err) {
-    alert("❌ X Authentication Error: " + err.message);
-  } finally {
-    localStorage.removeItem("guard_x_code_verifier");
-    localStorage.removeItem("guard_x_oauth_state");
-    localStorage.removeItem("guard_x_redirect_uri");
-  }
-}
 
-function getGuardUser() {
-  try {
-    return JSON.parse(localStorage.getItem("lived_guard_user") || '{"xHandle":null}');
-  } catch {
-    return { xHandle: null };
-  }
-}
+    async function handleGuardXOAuthCallback() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const state = urlParams.get('state');
+      
+      if (!code) return;
+      
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      const savedState = localStorage.getItem("guard_x_oauth_state");
+      const codeVerifier = localStorage.getItem("guard_x_code_verifier");
+      const redirectUri = localStorage.getItem("guard_x_redirect_uri");
+      
+      if (state !== savedState || !codeVerifier) return;
 
-function saveGuardUser(u) {
-  localStorage.setItem("lived_guard_user", JSON.stringify(u));
-}
+      try {
+        alert("🔄 Authenticating with X...");
+        const SUPABASE_URL = "https://zzjcfxsvgjtzketnfjqn.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_nnvegQL3tnQJTCeHEnQaCw_zTKwSovu";
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const { data, error } = await client.functions.invoke('x-auth-callback', {
+          body: { code, codeVerifier, redirectUri }
+        });
 
-function updateGuardXUI() {
-  const user = getGuardUser();
-  const btn = document.getElementById("guardNavXBtn");
-  const statusEl = document.getElementById("arenaXStatus");
+        if (error || (data && data.error)) {
+          throw new Error(data?.error || error?.message || "Token exchange failed");
+        }
 
-  if (user.xHandle) {
-    if (btn) btn.textContent = `🔗 ${user.xHandle}`;
-    if (statusEl) statusEl.textContent = `X Account: ${user.xHandle} (Live OAuth Verified)`;
-  } else {
-    if (btn) btn.textContent = "🔗 Connect X";
-    if (statusEl) statusEl.textContent = "X Account: Not Connected";
-  }
-}
+        if (data && data.username) {
+          const xHandle = "@" + data.username;
+          const user = getGuardUser();
+          user.xHandle = xHandle;
+          saveGuardUser(user);
 
-// Hook into app initialization to check for OAuth callback on load
-document.addEventListener("DOMContentLoaded", async () => {
-  await handleGuardXOAuthCallback();
-  updateGuardXUI();
-});
+          const st = loadArena();
+          await client.from('profiles').upsert([{
+            x_handle: xHandle,
+            handle: xHandle,
+            total_points: st.xp
+          }], { onConflict: 'x_handle' });
 
-let recipientWallets = [];
+          updateGuardXUI();
+          alert(`🎉 Successfully connected X account: ${xHandle}`);
+        }
+      } catch (err) {
+        alert("❌ X Authentication Error: " + err.message);
+      } finally {
+        localStorage.removeItem("guard_x_code_verifier");
+        localStorage.removeItem("guard_x_oauth_state");
+        localStorage.removeItem("guard_x_redirect_uri");
+      }
+    }
 
-function handleTokenSelectChange(val) {
-  const customWrap = document.getElementById("custom-token-wrap");
-  if (customWrap) {
-    customWrap.style.display = val === "custom" ? "block" : "none";
-  }
-}
+    let recipientWallets = [];
 
-function toggleCustomAllocation(val) {
-  const customWrap = document.getElementById("customAmountFieldWrap");
-  if (customWrap) {
-    customWrap.style.display = val === "custom" ? "block" : "none";
-  }
-}
+    function handleTokenSelectChange(val) {
+      const customWrap = document.getElementById("custom-token-wrap");
+      if (customWrap) {
+        customWrap.style.display = val === "custom" ? "block" : "none";
+      }
+    }
 
-function openAddWalletModal() {
-  document.getElementById("newTestWalletInput").value = "";
-  const amtInput = document.getElementById("newTestWalletAmount");
-  if (amtInput) amtInput.value = "";
-  
-  const allocType = document.getElementById("multiAllocationType").value;
-  document.getElementById("customAmountFieldWrap").style.display = allocType === "custom" ? "block" : "none";
-  
-  document.getElementById("addWalletModal").classList.add("active");
-}
+    function toggleCustomAllocation(val) {
+      const customWrap = document.getElementById("customAmountFieldWrap");
+      if (customWrap) {
+        customWrap.style.display = val === "custom" ? "block" : "none";
+      }
+    }
 
-function closeAddWalletModal() {
-  document.getElementById("addWalletModal").classList.remove("active");
-}
+    function openAddWalletModal() {
+      document.getElementById("newTestWalletInput").value = "";
+      const amtInput = document.getElementById("newTestWalletAmount");
+      if (amtInput) amtInput.value = "";
+      
+      const allocType = document.getElementById("multiAllocationType").value;
+      document.getElementById("customAmountFieldWrap").style.display = allocType === "custom" ? "block" : "none";
+      
+      document.getElementById("addWalletModal").classList.add("active");
+    }
 
-function saveTestWallet() {
-  const addr = document.getElementById("newTestWalletInput").value.trim();
-  const amt = document.getElementById("newTestWalletAmount")?.value || "0";
-  if (!addr) return;
-  
-  recipientWallets.push({ address: addr, amount: Number(amt) });
-  renderTestWallets();
-  closeAddWalletModal();
-}
+    function closeAddWalletModal() {
+      document.getElementById("addWalletModal").classList.remove("active");
+    }
 
-function renderTestWallets() {
-  const container = document.getElementById("additionalWalletsList");
-  const allocType = document.getElementById("multiAllocationType").value;
-  const totalBudget = Number(document.getElementById("multiTotalBudget").value) || 0;
+    function saveTestWallet() {
+      const addr = document.getElementById("newTestWalletInput").value.trim();
+      const amt = document.getElementById("newTestWalletAmount")?.value || "0";
+      if (!addr) return;
+      
+      recipientWallets.push({ address: addr, amount: Number(amt) });
+      renderTestWallets();
+      closeAddWalletModal();
+    }
 
-  if (!recipientWallets.length) {
-    container.innerHTML = "None added.";
-    return;
-  }
+    function renderTestWallets() {
+      const container = document.getElementById("additionalWalletsList");
+      const allocType = document.getElementById("multiAllocationType").value;
+      const totalBudget = Number(document.getElementById("multiTotalBudget").value) || 0;
 
-  const splitAmount = allocType === "equal" && recipientWallets.length > 0 ? (totalBudget / recipientWallets.length).toFixed(4) : null;
+      if (!recipientWallets.length) {
+        container.innerHTML = "None added.";
+        return;
+      }
 
-  container.innerHTML = recipientWallets.map((w, index) => {
-    const displayAmt = splitAmount ? `${splitAmount} (Equal)` : `${w.amount} (Custom)`;
-    return `
-      <div style="display:flex; justify-content:space-between; align-items:center; background:#121212; padding:6px 10px; border-radius:6px; margin-bottom:4px; border:1px solid var(--line);">
-        <div>
-          <span class="sol-addr">${esc(shortAddr(w.address))}</span>
-          <span class="muted" style="font-size:11px; margin-left:8px;">[${displayAmt}]</span>
-        </div>
-        <button type="button" class="btn ghost" style="min-height:24px; padding:0 8px; font-size:11px; color:var(--seal);" onclick="recipientWallets.splice(${index},1); renderTestWallets();">✕</button>
-      </div>
-    `;
-  }).join("");
-}
+      const splitAmount = allocType === "equal" && recipientWallets.length > 0 ? (totalBudget / recipientWallets.length).toFixed(4) : null;
 
-async function executeMultiSendBatch() {
-  const selectedToken = document.getElementById("multisend-token-select").value;
-  if (!recipientWallets.length) {
-    alert("Please add at least one recipient wallet.");
-    return;
-  }
-  alert(`🚀 Multi-send batch prepared for token [${selectedToken}] across ${recipientWallets.length} wallet(s)! Ready for transaction signing.`);
-}
+      container.innerHTML = recipientWallets.map((w, index) => {
+        const displayAmt = splitAmount ? `${splitAmount} (Equal)` : `${w.amount} (Custom)`;
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#121212; padding:6px 10px; border-radius:6px; margin-bottom:4px; border:1px solid var(--line);">
+            <div>
+              <span class="sol-addr">${esc(shortAddr(w.address))}</span>
+              <span class="muted" style="font-size:11px; margin-left:8px;">[${displayAmt}]</span>
+            </div>
+            <button type="button" class="btn ghost" style="min-height:24px; padding:0 8px; font-size:11px; color:var(--seal);" onclick="recipientWallets.splice(${index},1); renderTestWallets();">✕</button>
+          </div>
+        `;
+      }).join("");
+    }
 
+    async function executeMultiSendBatch() {
+      const selectedToken = document.getElementById("multisend-token-select").value;
+      if (!recipientWallets.length) {
+        alert("Please add at least one recipient wallet.");
+        return;
+      }
+      alert(`🚀 Multi-send batch prepared for token [${selectedToken}] across ${recipientWallets.length} wallet(s)! Ready for transaction signing.`);
+    }
   </script>
 </body>
 </html>
