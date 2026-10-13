@@ -403,12 +403,29 @@
   </style>
 </head>
 <body>
+  <!-- Modal for Adding Recipient Wallet -->
+  <div class="wallet-modal-overlay" id="addWalletModal">
+    <div class="wallet-modal-card" style="text-align:left;">
+      <h3 style="margin-top:0; font-family:var(--display); font-size:22px; color:var(--fg);">Add Recipient Wallet</h3>
+      <p class="muted" style="font-size:13px; margin-bottom:12px;">Enter recipient Solana address and optional custom share amount.</p>
+      <input type="text" id="newTestWalletInput" placeholder="Paste Solana address..." style="width:100%; min-height:44px; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--fg); padding:0 12px; outline:none; margin-bottom:10px;">
+      <div id="customAmountFieldWrap" style="display:none; margin-bottom:12px;">
+        <label class="lvl" style="display:block; margin-bottom:4px; color:var(--muted);">Custom Amount</label>
+        <input type="number" id="newTestWalletAmount" placeholder="0.0" step="0.01" style="width:100%; min-height:40px; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--fg); padding:0 12px; outline:none;">
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">
+        <button type="button" class="btn ghost" style="min-height:38px; font-size:14px;" onclick="closeAddWalletModal()">Cancel</button>
+        <button type="button" class="btn" style="min-height:38px; font-size:14px;" onclick="saveTestWallet()">Add Wallet</button>
+      </div>
+    </div>
+  </div>
+
   <div class="backdrop"></div>
   <section id="splash" class="splash on">
-    <p class="stamp">No theory · Everybody belongs[cite: 3]</p>
+    <p class="stamp">No theory · Everybody belongs</p>
     <div class="seal-box"><div class="rays"></div><img id="seal-live" alt="LIVED IT" /></div>
     <h1>LIVED<span>GUARD</span></h1>
-    <p class="muted" style="max-width:440px">Free Solana token and wallet analytics. No connect. No paid tier. For everyone[cite: 3].</p>
+    <p class="muted" style="max-width:440px">Free Solana token and wallet analytics. No connect. No paid tier. For everyone.</p>
     <p style="margin-top:28px"><button class="btn" id="enter" type="button">Enter Guard</button></p>
   </section>
   <div id="app" class="wrap">
@@ -521,77 +538,21 @@
       </main>
     </section>
 
-    <section id="token" class="view" hidden>
-      <main>
-        <p class="stamp brand">Token analysis</p>
-        <h1>Read the mint.</h1>
-        <form class="scan" id="token-form">
-          <div class="search-wrap">
-            <input id="token-input" type="text" placeholder="Token mint address" spellcheck="false" autocomplete="off" />
-            <button class="clear-input" id="clear-token" type="button" aria-label="Clear token address" title="Clear">×</button>
-          </div>
-          <button class="btn" type="submit">Scan token</button>
-        </form>
-        <p><button class="btn ghost" type="button" id="scan-lived">Scan $LIVED</button></p>
-        <div id="token-out" style="margin-top:28px"></div>
-        <div id="token-watch"></div>
-      </main>
-    </section>
-
-    <section id="wallet" class="view" hidden>
-      <main>
-        <p class="stamp brand">Wallet analysis</p>
-        <h1>Print the card.</h1>
-        <form class="scan" id="wallet-form">
-          <div class="search-wrap">
-            <input id="wallet-input" type="text" placeholder="Wallet address" spellcheck="false" autocomplete="off" />
-            <button class="clear-input" id="clear-wallet" type="button" aria-label="Clear wallet address" title="Clear">×</button>
-          </div>
-          <button class="btn" type="submit">Watch wallet</button>
-        </form>
-        <div id="wallet-out" style="margin-top:28px"></div>
-        <div id="wallet-watch"></div>
-      </main>
-    </section>
-
-    <!-- Guard Arena Simulator View -->
-    <section id="arena" class="view" hidden>
-      <main>
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
-          <div>
-            <p class="stamp brand">Risk Identification Simulator</p>
-            <h1>Guard Arena</h1>
-            <p id="arenaXStatus" class="stamp" style="color:#38bdf8;margin-top:4px">X Account: Not Connected (XP stored locally)</p>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <div class="stat" style="padding:8px 16px"><b><span id="arena-score" style="color:var(--brand)">0</span> XP</b><span>Auditor Score</span></div>
-            <div class="stat" style="padding:8px 16px"><b><span id="arena-streak" style="color:var(--brand)">0</span>x</b><span>Streak</span></div>
-          </div>
-        </div>
-        <p class="muted" style="margin-top:0;font-size:15px">Analyze simulated on-chain ledgers. Detect honeypots, balance exploits, and malicious authority setups.</p>
-        
-        <div id="arena-screen" style="margin-top:28px"></div>
-      </main>
-    </section>
-
     <section id="multisend" class="view" hidden>
       <main>
         <p class="stamp brand">Batch Transfer Ledger</p>
         <h1>Multi-Send Assets.</h1>
-        <p class="muted" style="margin-top:0;font-size:15px">Connect your wallet, choose the asset, and distribute SOL or SPL tokens to multiple addresses in one atomic transaction.</p>
+        <p class="muted" style="margin-top:0;font-size:15px">Distribute SOL or tokens to multiple wallet addresses with equal or custom allocation splits.</p>
         
-        <div class="card" style="margin-top:24px">
-          <div class="row" style="margin-bottom:16px; align-items:center">
-            <button class="btn" id="connect-wallet-btn" type="button">Connect Wallet</button>
-            <button class="btn ghost" id="disconnect-wallet-btn" type="button" style="display:none">Disconnect</button>
-            <span id="wallet-status" class="stamp" style="align-self:center">Not Connected</span>
-          </div>
-
-          <div class="row" style="margin-top:16px; gap:12px; align-items:end">
-            <div style="flex:1; min-width:180px">
-              <label class="lvl" style="display:block;margin-bottom:8px">Asset</label>
-              <select id="multisend-token-select" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;outline:none">
-                <option value="SOL">SOL</option>
+        <div class="card" style="max-width:650px; margin:24px auto;">
+          <div class="kicker" style="color:var(--brand); margin-bottom:12px;">Buy Setup</div>
+          
+          <div class="form">
+            <!-- Token Selection Dropdown -->
+            <div style="margin-bottom:14px">
+              <label class="lvl" style="display:block; margin-bottom:6px">Asset / Token Selection</label>
+              <select id="multisend-token-select" onchange="handleTokenSelectChange(this.value)" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;outline:none">
+                <option value="SOL">SOL (Native)</option>
                 <option value="USDC">USDC</option>
                 <option value="USDT">USDT</option>
                 <option value="JUP">JUP</option>
@@ -599,21 +560,58 @@
                 <option value="custom">Custom token mint</option>
               </select>
             </div>
-            <div style="flex:1; min-width:180px; display:none" id="custom-token-wrap">
-              <label class="lvl" style="display:block;margin-bottom:8px">Custom Token Mint</label>
-              <input id="multisend-custom-mint" type="text" placeholder="Token mint address" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;outline:none" />
+
+            <!-- Custom Token Mint (Conditional) -->
+            <div style="margin-bottom:14px; display:none;" id="custom-token-wrap">
+              <label class="lvl" style="display:block; margin-bottom:6px">Custom Token Mint Address</label>
+              <input type="text" id="multiCustomMint" placeholder="Paste token mint address" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;outline:none">
             </div>
-          </div>
 
-          <div style="margin-top:16px">
-            <label class="lvl" style="display:block;margin-bottom:8px">Recipients (Format: Address, Amount per line)</label>
-            <textarea id="multisend-input" rows="6" placeholder="11111111111111111111111111111111, 0.05&#10;So11111111111111111111111111111111111111112, 0.1" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;font-family:var(--stamp);font-size:13px;outline:none"></textarea>
-          </div>
+            <!-- Payment / Treasury Wallet -->
+            <div style="margin-bottom:14px">
+              <label class="lvl" style="display:block; margin-bottom:6px">Payment / Treasury Wallet</label>
+              <input type="text" id="multiTreasuryWallet" placeholder="Wallet that sends the batch transfer" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;outline:none">
+              <span class="muted" style="display:block; margin-top:4px; font-size:12px;">
+                The connected wallet signs the transaction. Additional addresses are for planning/distribution.
+              </span>
+            </div>
 
-          <div class="row" style="margin-top:16px">
-            <button class="btn" id="execute-multisend" type="button" disabled>Execute Batch Transfer</button>
+            <!-- Total Budget & Allocation -->
+            <div class="row" style="margin-bottom:14px; display:flex; gap:12px;">
+              <div style="flex:1">
+                <label class="lvl" style="display:block; margin-bottom:6px">Total Budget / Amount</label>
+                <input type="number" id="multiTotalBudget" value="1" step="0.1" min="0" oninput="renderTestWallets()" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;outline:none">
+              </div>
+              <div style="flex:1">
+                <label class="lvl" style="display:block; margin-bottom:6px">Allocation</label>
+                <select id="multiAllocationType" onchange="toggleCustomAllocation(this.value); renderTestWallets();" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;outline:none">
+                  <option value="equal">Equal Split</option>
+                  <option value="custom">Custom Split</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Additional Recipient Wallets Section -->
+            <div style="margin-top:14px; padding:12px; background:#0a0a0a; border:1px solid var(--line); border-radius:12px;">
+              <label class="lvl" style="color:var(--brand); display:block; margin-bottom:6px">Recipient Wallets</label>
+              <div id="additionalWalletsList" class="stamp" style="margin-bottom:8px; color:var(--muted);">None added.</div>
+              <button type="button" class="btn ghost" style="min-height:36px; font-size:13px; padding:0 14px;" onclick="openAddWalletModal()">+ Add Recipient Wallet</button>
+            </div>
+
+            <!-- Wallet Connection & Execute Row -->
+            <div class="row" style="margin-top:20px; align-items:center; justify-content:space-between;">
+              <div style="display:flex; gap:8px; align-items:center;">
+                <button class="btn" id="connect-wallet-btn" type="button" style="min-height:42px; font-size:15px;" onclick="openWalletModal()">Connect Wallet</button>
+                <button class="btn ghost" id="disconnect-wallet-btn" type="button" style="display:none; min-height:42px; font-size:15px;" onclick="disconnectWallet()">Disconnect</button>
+              </div>
+              <span id="wallet-status" class="stamp">Not Connected</span>
+            </div>
+
+            <div style="margin-top:16px;">
+              <button type="button" class="btn" id="execute-multisend" style="width:100%" onclick="executeMultiSendBatch()">Execute Multi-Send Batch</button>
+            </div>
+            <div id="multisend-out" style="margin-top:16px"></div>
           </div>
-          <div id="multisend-out" style="margin-top:16px"></div>
         </div>
       </main>
     </section>
@@ -1302,14 +1300,18 @@
       block("wallet",document.getElementById("wallet-watch"));
     }
 
-    function show(name){
+function show(name){
       const target = ["hub","token","wallet","arena","multisend"].includes(name) ? name : "hub";
-      document.getElementById("splash").classList.remove("on");
-      document.getElementById("app").classList.add("on");
+      const splash = document.getElementById("splash");
+      const app = document.getElementById("app");
+      if(splash) splash.classList.remove("on");
+      if(app) app.classList.add("on");
+
       ["hub","token","wallet","arena","multisend"].forEach(id=>{
-        document.getElementById(id).hidden = id!==target;
+        const el = document.getElementById(id);
+        if(el) el.hidden = (id !== target);
         const nav = document.getElementById("nav-"+id);
-        if(nav) nav.classList.toggle("on",id===target);
+        if(nav) nav.classList.toggle("on", id === target);
       });
       location.hash = target;
       if(target === "arena") renderArena();
@@ -2293,6 +2295,82 @@ document.addEventListener("DOMContentLoaded", async () => {
   await handleGuardXOAuthCallback();
   updateGuardXUI();
 });
+
+let recipientWallets = [];
+
+function handleTokenSelectChange(val) {
+  const customWrap = document.getElementById("custom-token-wrap");
+  if (customWrap) {
+    customWrap.style.display = val === "custom" ? "block" : "none";
+  }
+}
+
+function toggleCustomAllocation(val) {
+  const customWrap = document.getElementById("customAmountFieldWrap");
+  if (customWrap) {
+    customWrap.style.display = val === "custom" ? "block" : "none";
+  }
+}
+
+function openAddWalletModal() {
+  document.getElementById("newTestWalletInput").value = "";
+  const amtInput = document.getElementById("newTestWalletAmount");
+  if (amtInput) amtInput.value = "";
+  
+  const allocType = document.getElementById("multiAllocationType").value;
+  document.getElementById("customAmountFieldWrap").style.display = allocType === "custom" ? "block" : "none";
+  
+  document.getElementById("addWalletModal").classList.add("active");
+}
+
+function closeAddWalletModal() {
+  document.getElementById("addWalletModal").classList.remove("active");
+}
+
+function saveTestWallet() {
+  const addr = document.getElementById("newTestWalletInput").value.trim();
+  const amt = document.getElementById("newTestWalletAmount")?.value || "0";
+  if (!addr) return;
+  
+  recipientWallets.push({ address: addr, amount: Number(amt) });
+  renderTestWallets();
+  closeAddWalletModal();
+}
+
+function renderTestWallets() {
+  const container = document.getElementById("additionalWalletsList");
+  const allocType = document.getElementById("multiAllocationType").value;
+  const totalBudget = Number(document.getElementById("multiTotalBudget").value) || 0;
+
+  if (!recipientWallets.length) {
+    container.innerHTML = "None added.";
+    return;
+  }
+
+  const splitAmount = allocType === "equal" && recipientWallets.length > 0 ? (totalBudget / recipientWallets.length).toFixed(4) : null;
+
+  container.innerHTML = recipientWallets.map((w, index) => {
+    const displayAmt = splitAmount ? `${splitAmount} (Equal)` : `${w.amount} (Custom)`;
+    return `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#121212; padding:6px 10px; border-radius:6px; margin-bottom:4px; border:1px solid var(--line);">
+        <div>
+          <span class="sol-addr">${esc(shortAddr(w.address))}</span>
+          <span class="muted" style="font-size:11px; margin-left:8px;">[${displayAmt}]</span>
+        </div>
+        <button type="button" class="btn ghost" style="min-height:24px; padding:0 8px; font-size:11px; color:var(--seal);" onclick="recipientWallets.splice(${index},1); renderTestWallets();">✕</button>
+      </div>
+    `;
+  }).join("");
+}
+
+async function executeMultiSendBatch() {
+  const selectedToken = document.getElementById("multisend-token-select").value;
+  if (!recipientWallets.length) {
+    alert("Please add at least one recipient wallet.");
+    return;
+  }
+  alert(`🚀 Multi-send batch prepared for token [${selectedToken}] across ${recipientWallets.length} wallet(s)! Ready for transaction signing.`);
+}
 
   </script>
 </body>
