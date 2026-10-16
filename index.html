@@ -331,7 +331,6 @@
     .tx-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-top:1px solid var(--line)}
     .tx-row:first-child{border-top:0}
 
-    /* Arena Styles */
     .arena-grid{display:grid;gap:20px}
     @media(min-width:850px){.arena-grid{grid-template-columns:1fr 1.15fr}}
     .option-btn{display:block;width:100%;text-align:left;padding:16px 20px;margin-bottom:10px;border-radius:14px;background:#181818;border:1px solid var(--line);color:var(--fg);font-size:15px;font-weight:600;transition:all 0.2s}
@@ -346,7 +345,6 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
 
-    /* Universal Wallet Modal Styles */
     .wallet-modal-overlay {
       position: fixed;
       inset: 0;
@@ -401,28 +399,11 @@
       object-fit: contain;
     }
 
-        /* Ensure the main app wrap is visible when active */
-    .wrap {
-    display: block;
-    }
-
-    /* Handle view section visibility toggling */
-    .view {
-    display: none;
-    }
-
-    .view:not([hidden]) {
-    display: block;
-    }
-
-    /* Splash screen visibility override */
-    .splash {
-    display: none;
-    }
-
-    .splash.on {
-    display: flex;
-    }
+    .wrap { display: block; }
+    .view { display: none; }
+    .view:not([hidden]) { display: block; }
+    .splash { display: none; }
+    .splash.on { display: flex; }
   </style>
 </head>
 <body>
@@ -542,21 +523,6 @@
           <a class="btn" href="#arena" data-go="arena">Enter Arena</a>
         </div>
 
-        <div class="trust-strip">
-          <div class="trust-item">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span></span>
-          </div>
-          <div class="trust-item">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-            <span></span>
-          </div>
-          <div class="trust-item">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
-            <span></span>
-          </div>
-        </div>
-
         <div id="hub-watch"></div>
       </main>
     </section>
@@ -622,7 +588,6 @@
           <div class="kicker" style="color:var(--brand); margin-bottom:12px;">Buy Setup</div>
           
           <div class="form">
-            <!-- Token Selection Dropdown -->
             <div style="margin-bottom:14px">
               <label class="lvl" style="display:block; margin-bottom:6px">Asset / Token Selection</label>
               <select id="multisend-token-select" onchange="handleTokenSelectChange(this.value)" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;outline:none">
@@ -635,22 +600,11 @@
               </select>
             </div>
 
-            <!-- Custom Token Mint (Conditional) -->
             <div style="margin-bottom:14px; display:none;" id="custom-token-wrap">
               <label class="lvl" style="display:block; margin-bottom:6px">Custom Token Mint Address</label>
               <input type="text" id="multiCustomMint" placeholder="Paste token mint address" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;outline:none">
             </div>
 
-            <!-- Payment / Treasury Wallet -->
-            <div style="margin-bottom:14px">
-              <label class="lvl" style="display:block; margin-bottom:6px">Payment / Treasury Wallet</label>
-              <input type="text" id="multiTreasuryWallet" placeholder="Wallet that sends the batch transfer" style="width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px;outline:none">
-              <span class="muted" style="display:block; margin-top:4px; font-size:12px;">
-                The connected wallet signs the transaction. Additional addresses are for planning/distribution.
-              </span>
-            </div>
-
-            <!-- Total Budget & Allocation -->
             <div class="row" style="margin-bottom:14px; display:flex; gap:12px;">
               <div style="flex:1">
                 <label class="lvl" style="display:block; margin-bottom:6px">Total Budget / Amount</label>
@@ -665,24 +619,22 @@
               </div>
             </div>
 
-            <!-- Additional Recipient Wallets Section -->
             <div style="margin-top:14px; padding:12px; background:#0a0a0a; border:1px solid var(--line); border-radius:12px;">
               <label class="lvl" style="color:var(--brand); display:block; margin-bottom:6px">Recipient Wallets</label>
               <div id="additionalWalletsList" class="stamp" style="margin-bottom:8px; color:var(--muted);">None added.</div>
               <button type="button" class="btn ghost" style="min-height:36px; font-size:13px; padding:0 14px;" onclick="openAddWalletModal()">+ Add Recipient Wallet</button>
             </div>
 
-            <!-- Wallet Connection & Execute Row -->
             <div class="row" style="margin-top:20px; align-items:center; justify-content:space-between;">
               <div style="display:flex; gap:8px; align-items:center;">
-                <button class="btn" id="connect-wallet-btn" type="button" style="min-height:42px; font-size:15px;" onclick="openWalletModal()">Connect Wallet</button>
+                <button class="btn" id="connect-wallet-btn" type="button" style="min-height:42px; font-size:15px;">Connect Wallet</button>
                 <button class="btn ghost" id="disconnect-wallet-btn" type="button" style="display:none; min-height:42px; font-size:15px;" onclick="disconnectWallet()">Disconnect</button>
               </div>
               <span id="wallet-status" class="stamp">Not Connected</span>
             </div>
 
             <div style="margin-top:16px;">
-              <button type="button" class="btn" id="execute-multisend" style="width:100%" onclick="executeMultiSendBatch()">Execute Multi-Send Batch</button>
+              <button type="button" class="btn" id="execute-multisend" style="width:100%" disabled onclick="executeMultiSendBatch()">Execute Multi-Send Batch</button>
             </div>
             <div id="multisend-out" style="margin-top:16px"></div>
           </div>
@@ -973,7 +925,7 @@
     ];
 
     const ALPHA = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-    document.querySelectorAll(".seal-img,#seal-live").forEach((el)=>{el.src=SEAL});
+    document.querySelectorAll(".seal-img,#seal-live").forEach((el)=>{if(SEAL) el.src=SEAL;});
   
     function decode58(str){const bytes=[0];for(const ch of str){const val=ALPHA.indexOf(ch);if(val<0)throw new Error("bad");let carry=val;for(let i=0;i<bytes.length;i++){carry+=bytes[i]*58;bytes[i]=carry&255;carry>>=8}while(carry){bytes.push(carry&255);carry>>=8}}let z=0;for(const ch of str){if(ch==="1")z++;else break}return new Uint8Array([...Array(z).fill(0),...bytes.reverse()])}
     function encode58(buf){const bytes=Array.from(buf);let z=0;while(z<bytes.length&&bytes[z]===0)z++;const digits=[0];for(let i=z;i<bytes.length;i++){let carry=bytes[i];for(let j=0;j<digits.length;j++){carry+=digits[j]<<8;digits[j]=carry%58;carry=(carry/58)|0}while(carry){digits.push(carry%58);carry=(carry/58)|0}}return "1".repeat(z)+digits.reverse().map(d=>ALPHA[d]).join("")}
@@ -1537,7 +1489,7 @@
 
       try {
         let imgEl = document.getElementById("seal-live") || document.querySelector(".seal-img");
-        if (!imgEl || !imgEl.complete || imgEl.naturalWidth === 0) {
+        if ((!imgEl || !imgEl.complete || imgEl.naturalWidth === 0) && SEAL) {
           imgEl = new Image();
           imgEl.src = SEAL;
           if (imgEl.decode) {
@@ -1682,11 +1634,6 @@
       }
     }
 
-    // ==========================================
-    // GUARD ARENA (EDUCATIONAL SIMULATOR MODULE)
-    // ==========================================
-
-    // --- Guard X Connector & Cloud Sync Logic ---
     function getGuardUser() {
       try {
         return JSON.parse(localStorage.getItem("lived_guard_user") || '{"xHandle":null}');
@@ -1729,40 +1676,6 @@
         }
       } catch (err) {}
       return null;
-    }
-
-    async function connectGuardX() {
-      const user = getGuardUser();
-      if (user.xHandle) {
-        if (confirm(`Disconnect X account (${user.xHandle})?`)) {
-          user.xHandle = null;
-          saveGuardUser(user);
-          updateGuardXUI();
-          alert("X account disconnected.");
-        }
-        return;
-      }
-
-      const handleInput = prompt("Enter your X (Twitter) Handle:", "@");
-      if (!handleInput) return;
-      const xHandle = handleInput.startsWith("@") ? handleInput : "@" + handleInput;
-      
-      const cloudXp = await fetchGuardXPFromCloud(xHandle);
-      const st = loadArena();
-      
-      if (cloudXp !== null && cloudXp > st.xp) {
-        st.xp = cloudXp;
-        saveArena(st);
-      }
-
-      user.xHandle = xHandle;
-      saveGuardUser(user);
-      
-      await syncGuardXPToCloud(xHandle, st.xp, st.streak);
-      
-      updateGuardXUI();
-      renderArena();
-      alert(`🔗 X Account (${xHandle}) Connected! Your XP (${st.xp} XP) has been successfully synchronized across devices.`);
     }
 
     function updateGuardXUI() {
@@ -1933,7 +1846,6 @@
       }
       saveArena(st);
 
-      // Sync to Supabase cloud if X handle is connected
       const user = getGuardUser();
       if (user.xHandle) {
         syncGuardXPToCloud(user.xHandle, st.xp, st.streak);
@@ -1996,21 +1908,6 @@
       BONK: { symbol: "BONK", mint: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", decimals: 5 }
     };
 
-    function getSelectedMultiSendAsset() {
-      const tokenSelect = document.getElementById("multisend-token-select");
-      const customMint = (document.getElementById("multisend-custom-mint")?.value || "").trim();
-      const selected = tokenSelect.value;
-
-      if (selected === "SOL") return { type: "SOL", symbol: "SOL", mint: null, decimals: 9 };
-      if (selected === "custom") {
-        if (!isPubkey(customMint)) throw new Error("Enter a valid custom token mint address.");
-        return { type: "SPL", symbol: "CUSTOM", mint: customMint, decimals: 9 };
-      }
-      const asset = MULTISEND_TOKENS[selected];
-      if (!asset) throw new Error("Unsupported token selection.");
-      return { type: "SPL", ...asset };
-    }
-
     function openWalletModal() {
       document.getElementById("walletModal").classList.add("active");
     }
@@ -2032,7 +1929,6 @@
       document.getElementById("execute-multisend").disabled = true;
     }
 
-    // Universal Wallet Connector Function supporting desktop and mobile deep links
     async function connectUniversalWallet(walletType = 'auto') {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       const currentUrl = encodeURIComponent(window.location.href);
@@ -2115,7 +2011,6 @@
       });
     });
 
-    // Reliable Initial View Route on Load
     window.addEventListener("DOMContentLoaded", () => {
       const hashRoute = location.hash.replace("#","");
       if (sessionStorage.getItem("lived-guard-entered") === "1" || hashRoute) {
@@ -2125,7 +2020,6 @@
       }
     });
     
-    // --- Guard X Connector Logic ---
     function generateGuardCodeVerifier() {
       const array = new Uint8Array(32);
       window.crypto.getRandomValues(array);
@@ -2174,60 +2068,6 @@
       window.location.href = authUrl;
     }
 
-    async function handleGuardXOAuthCallback() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-      const state = urlParams.get('state');
-      
-      if (!code) return;
-      
-      window.history.replaceState({}, document.title, window.location.pathname);
-      
-      const savedState = localStorage.getItem("guard_x_oauth_state");
-      const codeVerifier = localStorage.getItem("guard_x_code_verifier");
-      const redirectUri = localStorage.getItem("guard_x_redirect_uri");
-      
-      if (state !== savedState || !codeVerifier) return;
-
-      try {
-        alert("🔄 Authenticating with X...");
-        const SUPABASE_URL = "https://zzjcfxsvgjtzketnfjqn.supabase.co";
-        const SUPABASE_ANON_KEY = "sb_publishable_nnvegQL3tnQJTCeHEnQaCw_zTKwSovu";
-        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        const { data, error } = await client.functions.invoke('x-auth-callback', {
-          body: { code, codeVerifier, redirectUri }
-        });
-
-        if (error || (data && data.error)) {
-          throw new Error(data?.error || error?.message || "Token exchange failed");
-        }
-
-        if (data && data.username) {
-          const xHandle = "@" + data.username;
-          const user = getGuardUser();
-          user.xHandle = xHandle;
-          saveGuardUser(user);
-
-          const st = loadArena();
-          await client.from('profiles').upsert([{
-            x_handle: xHandle,
-            handle: xHandle,
-            total_points: st.xp
-          }], { onConflict: 'x_handle' });
-
-          updateGuardXUI();
-          alert(`🎉 Successfully connected X account: ${xHandle}`);
-        }
-      } catch (err) {
-        alert("❌ X Authentication Error: " + err.message);
-      } finally {
-        localStorage.removeItem("guard_x_code_verifier");
-        localStorage.removeItem("guard_x_oauth_state");
-        localStorage.removeItem("guard_x_redirect_uri");
-      }
-    }
-
     let recipientWallets = [];
 
     function handleTokenSelectChange(val) {
@@ -2262,7 +2102,10 @@
     function saveTestWallet() {
       const addr = document.getElementById("newTestWalletInput").value.trim();
       const amt = document.getElementById("newTestWalletAmount")?.value || "0";
-      if (!addr) return;
+      if (!isPubkey(addr)) {
+        alert("Please enter a valid Solana recipient address.");
+        return;
+      }
       
       recipientWallets.push({ address: addr, amount: Number(amt) });
       renderTestWallets();
@@ -2296,12 +2139,125 @@
     }
 
     async function executeMultiSendBatch() {
-      const selectedToken = document.getElementById("multisend-token-select").value;
+      if (!connectedPublicKey || !connectedWalletProvider) {
+        alert("Please connect your Solana wallet first.");
+        openWalletModal();
+        return;
+      }
       if (!recipientWallets.length) {
         alert("Please add at least one recipient wallet.");
         return;
       }
-      alert(`🚀 Multi-send batch prepared for token [${selectedToken}] across ${recipientWallets.length} wallet(s)! Ready for transaction signing.`);
+
+      const outStatus = document.getElementById("multisend-out");
+      outStatus.innerHTML = '<div class="busy">Constructing batch transfer transaction…</div>';
+
+      try {
+        const tokenSelect = document.getElementById("multisend-token-select").value;
+        const allocType = document.getElementById("multiAllocationType").value;
+        const totalBudget = Number(document.getElementById("multiTotalBudget").value) || 0;
+
+        if (totalBudget <= 0) {
+          throw new Error("Total budget must be greater than 0.");
+        }
+
+        // Mitigated & Verified Share Calculation
+        let shares = [];
+        if (allocType === "equal") {
+          const shareValue = totalBudget / recipientWallets.length;
+          shares = recipientWallets.map(() => shareValue);
+        } else {
+          const sumCustom = recipientWallets.reduce((acc, w) => acc + Number(w.amount || 0), 0);
+          if (Math.abs(sumCustom - totalBudget) > 0.0001) {
+            throw new Error(`Sum of custom recipient amounts (${sumCustom}) does not match Total Budget (${totalBudget}).`);
+          }
+          shares = recipientWallets.map(w => Number(w.amount || 0));
+        }
+
+        const transaction = new solanaWeb3.Transaction();
+        const latestBlockhash = await rpc("getLatestBlockhash", [{ commitment: "confirmed" }]);
+        transaction.recentBlockhash = latestBlockhash.value.blockhash;
+        transaction.feePayer = connectedPublicKey;
+
+        const decimals = (tokenSelect === "SOL") ? 9 : (tokenSelect === "USDC" || tokenSelect === "USDT" ? 6 : 9);
+
+        if (tokenSelect === "SOL") {
+          for (let i = 0; i < recipientWallets.length; i++) {
+            const recipientPubkey = new solanaWeb3.PublicKey(recipientWallets[i].address);
+            const lamportsShare = Math.round(shares[i] * 1e9);
+            
+            transaction.add(
+              solanaWeb3.SystemProgram.transfer({
+                fromPubkey: connectedPublicKey,
+                toPubkey: recipientPubkey,
+                lamports: lamportsShare
+              })
+            );
+          }
+        } else {
+          let mintStr = MULTISEND_TOKENS[tokenSelect]?.mint;
+          if (tokenSelect === "custom") {
+            mintStr = document.getElementById("multiCustomMint").value.trim();
+          }
+          if (!isPubkey(mintStr)) {
+            throw new Error("Invalid token mint address specified for SPL multi-send.");
+          }
+
+          const mintPubkey = new solanaWeb3.PublicKey(mintStr);
+          const tokenDecimals = decimals;
+
+          for (let i = 0; i < recipientWallets.length; i++) {
+            const recipientPubkey = new solanaWeb3.PublicKey(recipientWallets[i].address);
+            const shareUnits = BigInt(Math.round(shares[i] * (10 ** tokenDecimals)));
+
+            const senderAta = await window.splToken.Token.getAssociatedTokenAddress(mintPubkey, connectedPublicKey);
+            const recipientAta = await window.splToken.Token.getAssociatedTokenAddress(mintPubkey, recipientPubkey);
+
+            const recipientInfo = await rpc("getAccountInfo", [recipientAta.toString(), { commitment: "confirmed" }]);
+            if (!recipientInfo?.value) {
+              transaction.add(
+                window.splToken.Token.createAssociatedTokenAccountInstruction(
+                  mintPubkey,
+                  recipientAta,
+                  recipientPubkey,
+                  connectedPublicKey
+                )
+              );
+            }
+
+            transaction.add(
+              window.splToken.Token.createTransferCheckedInstruction(
+                senderAta,
+                mintPubkey,
+                recipientAta,
+                connectedPublicKey,
+                shareUnits,
+                tokenDecimals
+              )
+            );
+          }
+        }
+
+        outStatus.innerHTML = '<div class="busy">Requesting wallet signature for batch transaction…</div>';
+        
+        let signedTx;
+        if (typeof connectedWalletProvider.signAndSendTransaction === "function") {
+          const sigResult = await connectedWalletProvider.signAndSendTransaction(transaction);
+          outStatus.innerHTML = `<div class="card" style="border-color:var(--good);background:var(--good-bg);color:#34d399"><b>✓ Batch Transfer Executed Successfully!</b><div class="stamp" style="margin-top:6px">Signature: ${esc(sigResult.signature || sigResult)}</div></div>`;
+          return;
+        } else if (typeof connectedWalletProvider.signTransaction === "function") {
+          signedTx = await connectedWalletProvider.signTransaction(transaction);
+          const serialized = signedTx.serialize();
+          const signature = await rpc("sendTransaction", [btoa(String.fromCharCode.apply(null, serialized)), { encoding: "base64" }]);
+          outStatus.innerHTML = `<div class="card" style="border-color:var(--good);background:var(--good-bg);color:#34d399"><b>✓ Batch Transfer Executed Successfully!</b><div class="stamp" style="margin-top:6px">Signature: ${esc(signature)}</div></div>`;
+          return;
+        } else {
+          throw new Error("Connected wallet provider does not support transaction signing.");
+        }
+
+      } catch (err) {
+        outStatus.innerHTML = `<div class="err"><b>Multi-Send Failed:</b> ${esc(err.message || err)}</div>`;
+      }
     }
   </script>
 </body>
