@@ -2239,17 +2239,17 @@
           }
         }
 
-        outStatus.innerHTML = '<div class="busy">Requesting wallet signature & broadcast…</div>';
+        outStatus.innerHTML = '<div class="busy">Requesting wallet approval & broadcast…</div>';
         
-        if (typeof connectedWalletProvider.signAndSendTransaction === "function") {
-          const sigResult = await connectedWalletProvider.signAndSendTransaction(transaction);
-          const sig = sigResult.signature || sigResult;
-          outStatus.innerHTML = `<div class="card" style="border-color:var(--good);background:var(--good-bg);color:#34d399"><b>✓ Batch Transfer Executed Successfully!</b><div class="stamp" style="margin-top:6px">Signature: ${esc(sig)}</div></div>`;
-        } else {
-          const signedTx = await connectedWalletProvider.signTransaction(transaction);
-          const rawSig = await rpc("sendTransaction", [btoa(String.fromCharCode.apply(null, signedTx.serialize())), { encoding: "base64", skipPreflight: false }]);
-          outStatus.innerHTML = `<div class="card" style="border-color:var(--good);background:var(--good-bg);color:#34d399"><b>✓ Batch Transfer Executed Successfully!</b><div class="stamp" style="margin-top:6px">Signature: ${esc(rawSig)}</div></div>`;
+        // Use native wallet provider method so Phantom simulates, signs, broadcasts, and indexes the tx correctly
+        if (typeof connectedWalletProvider.signAndSendTransaction !== "function") {
+          throw new Error("Connected wallet does not support direct signAndSendTransaction.");
         }
+
+        const sigResult = await connectedWalletProvider.signAndSendTransaction(transaction);
+        const signature = sigResult.signature || sigResult;
+
+        outStatus.innerHTML = `<div class="card" style="border-color:var(--good);background:var(--good-bg);color:#34d399"><b>✓ Batch Transfer Executed Successfully!</b><div class="stamp" style="margin-top:6px">Signature: ${esc(signature)}</div></div>`;
 
       } catch (err) {
         outStatus.innerHTML = `<div class="err"><b>Multi-Send Failed:</b> ${esc(err.message || err)}</div>`;
