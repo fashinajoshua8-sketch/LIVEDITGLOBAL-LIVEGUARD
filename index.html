@@ -582,7 +582,10 @@
       <main>
         <p class="stamp brand">Batch Transfer Ledger</p>
         <h1>Multi-Send Assets.</h1>
-        <p class="muted" style="margin-top:0;font-size:15px">Distribute SOL or tokens to multiple wallet addresses with equal or custom allocation splits.</p>
+        <p class="muted" style="margin-top:0;font-size:15px">
+          Pay multiple giveaway and contest winners in one go. Multi Send helps projects distribute rewards to several wallet addresses in a single streamlined process, saving time, reducing repetitive manual transfers, and minimizing payment errors. Ideal for airdrops, contests, community rewards, and other bulk payouts.<br><br>
+          <strong style="color:var(--brand);">One action. Multiple winners. Seamless payouts.</strong>
+        </p>
         
         <div class="card" style="max-width:650px; margin:24px auto;">
           <div class="kicker" style="color:var(--brand); margin-bottom:12px;">Buy Setup</div>
@@ -2161,7 +2164,6 @@
           throw new Error("Total budget must be greater than 0.");
         }
 
-        // Mitigated & Verified Share Calculation
         let shares = [];
         if (allocType === "equal") {
           const shareValue = totalBudget / recipientWallets.length;
