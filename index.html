@@ -955,7 +955,7 @@
         if (!Number.isFinite(n)) return intP.toString();
         if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
         if (n >= 1e6) return (num / 1e6).toFixed(2) + "M";
-        if (n >= 1e3) return (num / 1e3).toFixed(2) + "k";
+        if (n >= 1e3) return (n / 1e3).toFixed(2) + "k";
         return n.toLocaleString(undefined, { maximumFractionDigits: 4 });
       } catch {
         return String(raw);
@@ -2206,11 +2206,10 @@
           }
 
           const mintPubkey = new solanaWeb3.PublicKey(mintStr);
-          const tokenDecimals = decimals;
 
           for (let i = 0; i < recipientWallets.length; i++) {
             const recipientPubkey = new solanaWeb3.PublicKey(recipientWallets[i].address);
-            const shareUnits = BigInt(Math.round(shares[i] * (10 ** tokenDecimals)));
+            const shareUnits = BigInt(Math.round(shares[i] * (10 ** decimals)));
 
             const senderAta = await window.splToken.Token.getAssociatedTokenAddress(mintPubkey, connectedPublicKey);
             const recipientAta = await window.splToken.Token.getAssociatedTokenAddress(mintPubkey, recipientPubkey);
@@ -2234,27 +2233,22 @@
                 recipientAta,
                 connectedPublicKey,
                 shareUnits,
-                tokenDecimals
+                decimals
               )
             );
           }
         }
 
-        outStatus.innerHTML = '<div class="busy">Requesting wallet signature for batch transaction…</div>';
+        outStatus.innerHTML = '<div class="busy">Requesting wallet signature & broadcast…</div>';
         
-        let signedTx;
         if (typeof connectedWalletProvider.signAndSendTransaction === "function") {
           const sigResult = await connectedWalletProvider.signAndSendTransaction(transaction);
-          outStatus.innerHTML = `<div class="card" style="border-color:var(--good);background:var(--good-bg);color:#34d399"><b>✓ Batch Transfer Executed Successfully!</b><div class="stamp" style="margin-top:6px">Signature: ${esc(sigResult.signature || sigResult)}</div></div>`;
-          return;
-        } else if (typeof connectedWalletProvider.signTransaction === "function") {
-          signedTx = await connectedWalletProvider.signTransaction(transaction);
-          const serialized = signedTx.serialize();
-          const signature = await rpc("sendTransaction", [btoa(String.fromCharCode.apply(null, serialized)), { encoding: "base64" }]);
-          outStatus.innerHTML = `<div class="card" style="border-color:var(--good);background:var(--good-bg);color:#34d399"><b>✓ Batch Transfer Executed Successfully!</b><div class="stamp" style="margin-top:6px">Signature: ${esc(signature)}</div></div>`;
-          return;
+          const sig = sigResult.signature || sigResult;
+          outStatus.innerHTML = `<div class="card" style="border-color:var(--good);background:var(--good-bg);color:#34d399"><b>✓ Batch Transfer Executed Successfully!</b><div class="stamp" style="margin-top:6px">Signature: ${esc(sig)}</div></div>`;
         } else {
-          throw new Error("Connected wallet provider does not support transaction signing.");
+          const signedTx = await connectedWalletProvider.signTransaction(transaction);
+          const rawSig = await rpc("sendTransaction", [btoa(String.fromCharCode.apply(null, signedTx.serialize())), { encoding: "base64", skipPreflight: false }]);
+          outStatus.innerHTML = `<div class="card" style="border-color:var(--good);background:var(--good-bg);color:#34d399"><b>✓ Batch Transfer Executed Successfully!</b><div class="stamp" style="margin-top:6px">Signature: ${esc(rawSig)}</div></div>`;
         }
 
       } catch (err) {
