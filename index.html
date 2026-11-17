@@ -882,8 +882,42 @@
     const ALPHA = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
     document.querySelectorAll(".seal-img,#seal-live").forEach((el)=>{if(SEAL) el.src=SEAL;});
   
-    function decode58(str){const bytes=[0];for(const ch of str){const val=ALPHA.indexOf(ch);if(val<0)throw new Error("bad");let carry=val;for(let i=0;i<bytes.length;i++){carry+=bytes[i]*58;bytes[i]=carry&255;carry>>=8}while(carry){bytes.push(carry&255);carry>>=8}}let z=0;for(const ch of str){if(ch==="1")z++;else break}return new Uint8Array([...Array(z).fill(0),...bytes.reverse()])}
-    function encode58(buf){const bytes=Array.from(buf);let z=0;while(z<bytes.length&&bytes[z]===0)z++;const digits=[0];for(let i=z;i<bytes.length;i++){let carry=bytes[i];for(let j=0;j<digits.length;j++){carry+=digits[j]<<8;digits[j]=carry%58;carry=(carry/58)|0}while(carry){digits.push(carry%58);carry=(carry/58)|0}}return "1".repeat(z)+digits.reverse().map(d=>ALPHA[d]).join("")}
+    function decode58(str) {
+      let value = 0n;
+      for (const ch of str) {
+        const digit = ALPHA.indexOf(ch);
+        if (digit < 0) throw new Error("Invalid base58 character.");
+        value = value * 58n + BigInt(digit);
+      }
+
+      const bytes = [];
+      while (value > 0n) {
+        bytes.push(Number(value & 255n));
+        value >>= 8n;
+      }
+      bytes.reverse();
+
+      let leadingZeros = 0;
+      while (leadingZeros < str.length && str[leadingZeros] === "1") leadingZeros++;
+      return new Uint8Array([...Array(leadingZeros).fill(0), ...bytes]);
+    }
+
+    function encode58(buf) {
+      const bytes = Array.from(buf);
+      let leadingZeros = 0;
+      while (leadingZeros < bytes.length && bytes[leadingZeros] === 0) leadingZeros++;
+
+      let value = 0n;
+      for (const byte of bytes) value = value * 256n + BigInt(byte);
+
+      let encoded = "";
+      while (value > 0n) {
+        const remainder = Number(value % 58n);
+        encoded = ALPHA[remainder] + encoded;
+        value /= 58n;
+      }
+      return "1".repeat(leadingZeros) + encoded;
+    }
     function isPubkey(raw){try{return decode58(raw.trim()).length===32}catch{return false}}
     function shortAddr(a){return !a?"—":(a.length<10?a:a.slice(0,4)+"…"+a.slice(-4))}
     function formatUsd(n){if(n==null||!Number.isFinite(n))return "—";if(n>=1e6)return "$"+(n/1e6).toFixed(2)+"M";if(n>=1e3)return "$"+(n/1e3).toFixed(1)+"k";if(n>=1)return "$"+n.toFixed(2);return "$"+n.toPrecision(3)}
@@ -2346,6 +2380,15 @@
               )
             );
           }
+        }
+
+        const message = transaction.serializeMessage();
+        const requiredSignatures = transaction.compileMessage().header.numRequiredSignatures;
+        let signaturePrefixLength = 1;
+        for (let count = requiredSignatures; count >= 128; count >>= 7) signaturePrefixLength++;
+        const serializedSize = message.length + signaturePrefixLength + requiredSignatures * 64;
+        if (serializedSize > 1232) {
+          throw new Error(`This batch is ${serializedSize} bytes, above Solana's 1,232-byte transaction limit. Reduce the recipient count and try again.`);
         }
 
         outStatus.innerHTML = '<div class="busy">Requesting wallet approval & broadcast…</div>';
